@@ -6,6 +6,7 @@
 
 #include <ipfix.h>
 #include <mlog.h>
+#include "mnslp_libipfix.h"
 
 
 int main ( int argc, char **argv )
@@ -20,11 +21,12 @@ int main ( int argc, char **argv )
                            11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
                            21, 22, 23, 24, 25, 26, 27, 28, 29, 30 };
 
-    ipfix_t           *ipfixh  = NULL;
-    ipfix_template_t  *ipfixt  = NULL;
-    int               sourceid = 12345;
-    int               port     = IPFIX_PORTNO;
-    int               verbose_level = 0;
+    ipfix_t           		*ipfixh  = NULL;
+    ipfix_template_t  		*ipfixt  = NULL;
+    mnslp_ipfix_message_t 	*mes = NULL;
+	int               		sourceid = 12345;
+	int               		port     = IPFIX_PORTNO;
+    int               		verbose_level = 0;
 
     /* set default host */
     strcpy(chost, "localhost");
@@ -94,15 +96,7 @@ int main ( int argc, char **argv )
         fprintf( stderr, "ipfix_open() failed: %s\n", strerror(errno) );
         exit(1);
     }
-
-    /** set collector to use
-     */
-    if ( ipfix_add_collector( ipfixh, chost, port, protocol ) <0 ) {
-        fprintf( stderr, "ipfix_add_collector(%s,%d) failed: %s\n", 
-                 chost, port, strerror(errno));
-        exit(1);
-    }
-
+	
     /** get template
      */
     if ( ipfix_new_data_template( ipfixh, &ipfixt, 2 ) <0 ) {
@@ -119,16 +113,20 @@ int main ( int argc, char **argv )
         exit(1);
     }
 
-    if ( ipfix_export( ipfixh, ipfixt, buf, &bytes ) <0 ) {
-          fprintf( stderr, "ipfix_export() failed: %s\n", 
-                     strerror(errno) );
-          exit(1);
-    }
+    printf( "[%d] export some data a ", j );
+    fflush( stdout) ;
+    
+    if (mnslp_message_create( &mes  ) <0)
+    {
+        fprintf( stderr, "ipfix_create_message() failed: %s\n", 
+                     strerror(errno) );		
+		exit(1);
+	}
 
-    printf( "[%d] export some data ... ", j );
+    printf( "[%d] export some data b ", j );
     fflush( stdout) ;
 
-    if ( msnlp_ipfix_export( ipfixh, ipfixt, buf, &bytes ) <0 ) {
+    if ( mnslp_ipfix_export( ipfixh, mes, ipfixt, buf, &bytes ) <0 ) {
          fprintf( stderr, "ipfix_export() failed: %s\n", 
                      strerror(errno) );
          exit(1);
@@ -165,6 +163,7 @@ int main ( int argc, char **argv )
     /** clean up
      */
     ipfix_delete_template( ipfixh, ipfixt );
+    ipfix_message_release (mes);
     ipfix_close( ipfixh );
     ipfix_cleanup();
     exit(0);

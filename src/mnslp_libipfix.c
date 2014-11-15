@@ -1,9 +1,32 @@
-/*
-**     exporter.c - example exporter
-**
-**     Copyright Fraunhofer FOKUS
-**
-*/
+/// ----------------------------------------*- mode: C; -*--
+/// @file mnslp_libipfix.c
+/// Tools for processing IPFIX messages in NSIS metering.
+/// ----------------------------------------------------------
+/// $Id: mnslp_libipfix.c 2558 2014-11-14 14:11:00 amarentes $
+/// $HeadURL: https://./include/mnslp_libipfix.c $
+// ===========================================================
+//                      
+// Copyright (C) 2012-2014, all rights reserved by
+// - System and Computing Engineering, Universidad de los Andes
+//
+// More information and contact:
+// https://www.uniandes.edu.co/
+//                      
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; version 2 of the License
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, write to the Free Software Foundation, Inc.,
+// 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+//
+// ===========================================================
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -12,15 +35,426 @@
 
 #include <ipfix.h>
 #include <mlog.h>
+#include "mnslp_libipfix.h"
 
 
+#define NODEBUG
+#define IPFIX_DEFAULT_BUFLEN  1400
 
-typedef struct mnslp_ipfix_message
+#define INSERTU16(b,l,val) \
+        { uint16_t _t=htons((val)); memcpy((b),&_t,2); (l)+=2; }
+#define INSERTU32(b,l,val) \
+        { uint32_t _t=htonl((val)); memcpy((b),&_t,4); (l)+=4; }
+
+#define READ16(b) ((*(b)<<8)|*((b)+1))
+#define READ32(b) ((((((*(b)<<8)|*(b+1))<<8)|(*(b+2)))<<8)|*(b+3))
+
+
+typedef struct ipfixiobuf
 {
-    char        *buffer;   						/* message buffer */
-    int         nrecords;                       /* no. of records in buffer */
-    size_t      offset;                         /* output buffer fill level */
-} mnslp_ipfix_message_t;
+    struct ipfixiobuf  *next;
+    size_t             buflen;
+    char               buffer[IPFIX_DEFAULT_BUFLEN+IPFIX_HDR_BYTES_NF9]; /*!!*/
+} mnslp_iobuf_t;
+
+static mnslp_iobuf_t            g_iobuf[2], *g_buflist =NULL;
+static ipfix_datarecord_t 		g_mnslp_data = { NULL, NULL, 0 }; /* ipfix_export */
+
+void allocate_additional_memory(mnslp_ipfix_message_t *mes, size_t additional)
+{
+	if (mes)
+	{
+		if ((mes->offset + additional) > sizeof(mes->buffer))
+			mes->buffer=(char *)realloc(mes->buffer, mes->offset + additional + 1);
+	}
+}
+
+
+/* Name      : do_writen
+ * Parameter : > mes   		output message
+ *             > *ptr       buffer
+ *             > nbytes     number of bytes to write
+ * Purpose   : write 'n' bytes to message
+ * Returns   : number of written bytes.
+ */
+static int _mnslp_do_writen( mnslp_ipfix_message_t *mes, 
+							 char *ptr, 
+							 int nbytes )
+{
+    int     nleft, nwritten;
+#ifdef DEBUG
+    int     i;
+
+    for ( i=0; i<nbytes; i++ )
+        fprintf( stderr, "[%02x]", (ptr[i]&0xFF) );
+    fprintf( stderr, "\n" );
+#endif
+
+    allocate_additional_memory(mes, nbytes);
+    memcpy( mes->buffer+mes->offset, ptr, nbytes );
+    return nbytes;
+}
+
+
+/*
+ * name:        mnslp_ipfix_parse_hdr()
+ * parameters:
+ * return:      0/-1
+ */
+int mnslp_ipfix_parse_hdr( mnslp_ipfix_message_t *mes, ipfix_hdr_t *hdr )
+{
+    uint16_t version = READ16(mes->buffer);
+
+    switch ( version ) {
+      case IPFIX_VERSION_NF9:
+          if ( (mes->offset) < IPFIX_HDR_BYTES_NF9 )
+              return -1;
+          hdr->version = version;
+          hdr->u.nf9.count = READ16(mes->buffer+2);
+          hdr->u.nf9.sysuptime = READ32(mes->buffer+4);
+          hdr->u.nf9.unixtime = READ32(mes->buffer+8);
+          hdr->seqno = READ32(mes->buffer+12);
+          hdr->sourceid = READ32(mes->buffer+16);
+          break;
+
+      case IPFIX_VERSION:
+          if ( (mes->offset) < IPFIX_HDR_BYTES )
+              return -1;
+          hdr->version = version;
+          hdr->u.ipfix.length = READ16(mes->buffer+2);
+          hdr->u.ipfix.exporttime = READ32(mes->buffer+4);
+          hdr->seqno = READ32(mes->buffer+8);
+          hdr->sourceid = READ32(mes->buffer+12);
+          break;
+
+      default:
+          hdr->version = -1;
+          return -1;
+    }
+    return 0;
+}
+
+ipfix_template_t * mnslp_get_template(ipfix_t 			   *ifh, 
+									  uint16_t            tid_param)
+{
+	ipfix_template_t    *res = NULL;
+	ipfix_template_t    *n = NULL;
+	
+	for ( n = ifh->templates; n!=NULL; n=n->next){
+		if (n->tid == tid_param)
+		{
+			res = n;
+			break;
+		}
+	}
+	return res;
+}
+
+
+/*
+ * name:        mnslp_ipfix_decode_trecord()
+ * func:        create or update template inside ifh. 
+ * return:      0/-1
+ */
+int mnslp_ipfix_decode_trecord( ipfix_t *ifh,
+								int            setid,
+								const char     *buf,
+								size_t         len,
+								int            *nread,
+								ipfix_template_t **templ )
+{
+    ipfix_template_t  *t;
+    uint16_t          templid, nfields, nscopefields, ndatafields;
+    int               i, newnode =0;
+    size_t            offset;
+    char              *func = "ipfix_decode_trecord";
+
+    errno = EIO;
+
+    /** read template header
+     */
+    switch( setid ) {
+      case IPFIX_SETID_OPTTEMPLATE:
+          if ( len<6 )
+              goto ioerr;
+          templid      = READ16(buf);
+          nfields      = READ16(buf+2);
+          nscopefields = READ16(buf+4);
+          offset = 6;
+          ndatafields = nfields - nscopefields;
+          break;
+      case IPFIX_SETID_OPTTEMPLATE_NF9:
+      {
+          size_t scopelen, optionlen;
+
+          if ( len<6 )
+              goto ioerr;
+          templid   = READ16(buf);
+          scopelen  = READ16(buf+2);
+          optionlen = READ16(buf+4);
+          offset = 6;
+          if ( (scopelen+optionlen) < len ) {
+              mlogf( 1, "[%s] read invalid nf9 template %d\n", func, templid ); 
+              return -1;
+          } 
+          nscopefields = scopelen / 4;
+          ndatafields  = optionlen / 4;
+          nfields   = nscopefields + ndatafields;
+          break;
+      }
+      case IPFIX_SETID_TEMPLATE:
+      case IPFIX_SETID_TEMPLATE_NF9:
+          if ( len<4 )
+              goto ioerr;
+          templid   = READ16(buf);
+          nfields   = READ16(buf+2);
+          offset = 4;
+          ndatafields  = nfields;
+          nscopefields = 0;
+          break;
+      default:
+          return -1;
+    }
+
+    if ( nfields == 0 ) {
+        /** template withdrawal message
+         */
+        if ( templid == setid ) {
+            while( ifh->templates )
+                if ((ifh->templates)->type == setid)
+					ipfix_delete_template( ifh, ifh->templates );
+            mlogf( 3, "[%s] %u withdraw all templates\n",
+                   func, setid ); 
+        }
+        else if ( (t=mnslp_get_template(ifh, templid )) == NULL) {
+            mlogf( 3, "[%s] %u got withdraw for non-existant template %d\n", 
+                   func, setid, templid ); 
+        } else {
+            ipfix_delete_template( ifh, t );
+            mlogf( 3, "[%s] %u withdraw template %u\n", 
+                   func, setid, templid ); 
+        }
+
+        *nread = offset;
+        *templ = NULL;
+        errno  = 0;
+        return 0;
+    }
+
+#ifdef DEBUG
+    mlogf( 3, "  tid=%d, nfields=%d(%ds/%d)\n",
+           templid, nfields, nscopefields, ndatafields );
+#endif
+
+    /** get template node
+     */
+    t = mnslp_get_template(ifh, templid );
+    if ( (t == NULL)
+         || (nfields > t->nfields) ) {
+
+        if ( t )
+           // Replace the template.
+           ipfix_delete_template( ifh, t );
+		/** alloc mem
+		*/
+		if ( (t=calloc( 1, sizeof(ipfix_template_t) )) ==NULL )
+			return -1;
+
+		if ( (t->fields=calloc( nfields, sizeof(ipfix_template_field_t) )) ==NULL ) {
+			free(t);
+			return -1;
+		}
+		newnode =1;
+    }
+    else {
+        newnode =0;
+        /* todo: remove the code below */
+        for( i=0;  i<nfields; i++ ) {
+            if ( t->fields[i].unknown_f ) {
+                ipfix_free_unknown_ftinfo( t->fields[i].elem );
+            }
+        }
+    }
+
+    t->tid     = templid;
+    t->nfields = nfields;
+    t->ndatafields  = ndatafields;
+    t->nscopefields = nscopefields;
+
+    /** read field definitions
+     */
+    for( i=0;  i<nfields; i++ ) {
+        if ( (offset >= len)
+             || (ipfix_read_templ_field( buf+offset, len-offset,
+                                         &offset, &(t->fields[i]) ) <0 ) ) {
+            goto errend;
+        }
+    }    
+
+    /** add template to template list
+     */
+    t->next = ifh->templates;
+    ifh->templates = t;
+
+    *nread = offset;
+    *templ = t;
+    errno  = 0;
+    return 0;
+
+ errend:
+    if ( newnode ) {
+        free(t);
+    }
+    else {
+        ipfix_delete_template( ifh, t );
+    }
+    return -1;
+
+ ioerr:
+    mlogf( 1, "[%s] invalid message lenght\n", func ); 
+    return -1;
+}
+				  
+/*
+ * name:        mnslp_ipfix_decode_datarecord()
+ * parameters:
+ * desc:        this func parses and exports the ipfix data set
+ * return:      0=ok, -1=error
+ * todo:        parse message before calling this func
+ */
+int mnslp_ipfix_decode_datarecord( ipfix_template_t   *t,
+								   char      		  *buf, 
+								   int                buflen,
+								   int                *nread,
+								   ipfix_datarecord_t *data )
+{
+    uint8_t       *p;
+    int           i, len, bytesleft;
+    char          *func = "mnslp_ipfix_decode_datarecord";
+
+    /** check data size
+     */
+    if ( t->nfields > data->maxfields ) {
+        if ( data->addrs ) free( data->addrs );
+        if ( data->lens ) free( data->lens );
+        if ( (data->lens=calloc( t->nfields, sizeof(uint16_t)))==NULL) {
+            data->maxfields = 0;
+            return -1;
+        }
+        if ( (data->addrs=calloc( t->nfields, sizeof(void*)))==NULL) {
+            free( data->lens );
+            data->lens = NULL;
+            data->maxfields = 0;
+            return -1;
+        }           
+        data->maxfields = t->nfields;
+    }
+
+    /** parse message
+     */
+    bytesleft = buflen;
+    *nread    = 0;
+    p         = buf;
+    for ( i=0; i< t->nfields; i++ ) {
+
+        len = t->fields[i].flength;
+        if ( len == IPFIX_FT_VARLEN ) {
+            len =*p;
+            p++;
+            (*nread) ++;
+            if ( len == 255 ) {
+                len = READ16(p);
+                p += 2;
+                (*nread) +=2;
+            }
+        }
+
+        bytesleft -= len;
+        if ( bytesleft < 0 ) {
+            mlogf( 0, "[%s] record%d: msg too short\n", func, i+1 );
+            errno = EIO;
+            return -1;
+        }
+
+        t->fields[i].elem->decode(p,p,len);
+
+        data->lens[i]  = len;
+        data->addrs[i] = p;
+
+        p        += len;
+        (*nread) += len;
+    }
+
+    return 0;
+}
+
+
+
+int _mnslp_ipfix_send_msg( ipfix_t *ifh, 
+						   mnslp_ipfix_message_t *mes, 
+						   mnslp_iobuf_t *buf )
+{
+    int i, retval =-1;
+
+    /* send ipfix message */
+    if ( _mnslp_do_writen( mes, buf->buffer, buf->buflen )
+         != (int)buf->buflen ) {
+         return -1;
+    }
+    
+    retval =0;
+    return retval;
+}
+
+
+static void _finish_cs( ipfix_t *ifh )
+{
+    size_t   buflen;
+    uint8_t  *buf;
+
+    /* finish current dataset */
+    if ( (buf=ifh->cs_header) ==NULL )
+        return;
+    buflen = 0;
+    INSERTU16( buf+buflen, buflen, ifh->cs_tid );
+    INSERTU16( buf+buflen, buflen, ifh->cs_bytes );
+    ifh->cs_bytes = 0;
+    ifh->cs_header = NULL;
+    ifh->cs_tid = 0;
+}
+
+
+/*
+ * name:        mnslp_message_create()
+ * parameters:
+ * return:      0 = ok, -1 = error
+ */
+int mnslp_message_create( mnslp_ipfix_message_t ** ipfix_message  )
+{
+    mnslp_ipfix_message_t       *i;
+
+	if ( (i=calloc( 1, sizeof(mnslp_ipfix_message_t) )) ==NULL )
+        return -1;
+	
+	if ( (i->buffer=calloc( 1, IPFIX_DEFAULT_BUFLEN )) ==NULL ) {
+        free( i );
+        return -1;
+    } 
+	i->nrecords = 0;
+	i->offset = 0;
+	
+    *ipfix_message = i;
+    return 0;
+}
+
+void ipfix_message_release( mnslp_ipfix_message_t * ipfix_message )
+{
+	if (ipfix_message)
+	{
+		free(ipfix_message->buffer);
+		free(ipfix_message);
+	}
+}
 
 
 int mnslp_ipfix_export( ipfix_t *ifh, 
@@ -35,41 +469,207 @@ int mnslp_ipfix_export( ipfix_t *ifh,
         return -1;
     }
 
-    if ( templ->nfields > g_data.maxfields ) {
-        if ( g_data.addrs ) free( g_data.addrs );
-        if ( g_data.lens ) free( g_data.lens );
-        if ( (g_data.lens=calloc( templ->nfields, sizeof(uint16_t))) ==NULL) {
-            g_data.maxfields = 0;
+    if ( templ->nfields > g_mnslp_data.maxfields ) {
+        if ( g_mnslp_data.addrs ) free( g_mnslp_data.addrs );
+        if ( g_mnslp_data.lens ) free( g_mnslp_data.lens );
+        if ( (g_mnslp_data.lens=calloc( templ->nfields, sizeof(uint16_t))) ==NULL) {
+            g_mnslp_data.maxfields = 0;
             return -1;
         }
-        if ( (g_data.addrs=calloc( templ->nfields, sizeof(void*))) ==NULL) {
-            free( g_data.lens );
-            g_data.lens = NULL;
-            g_data.maxfields = 0;
+        if ( (g_mnslp_data.addrs=calloc( templ->nfields, sizeof(void*))) ==NULL) {
+            free( g_mnslp_data.lens );
+            g_mnslp_data.lens = NULL;
+            g_mnslp_data.maxfields = 0;
             return -1;
         }
-        g_data.maxfields = templ->nfields;
+        g_mnslp_data.maxfields = templ->nfields;
     }
 
+    printf( "export some data c " );
+    fflush( stdout) ;
+    
     /** collect pointers
      */
     va_start(args, templ);
     for ( i=0; i<templ->nfields; i++ )
     {
-        g_data.addrs[i] = va_arg(args, char*);          /* todo: change this! */
+        g_mnslp_data.addrs[i] = va_arg(args, char*);          /* todo: change this! */
         if ( templ->fields[i].flength == IPFIX_FT_VARLEN )
-            g_data.lens[i] = va_arg(args, int);
+            g_mnslp_data.lens[i] = va_arg(args, int);
         else
-            g_data.lens[i] = templ->fields[i].flength;
+            g_mnslp_data.lens[i] = templ->fields[i].flength;
     }
     va_end(args);
 
-    return _mnslp_ipfix_export_array( ifh, templ, mes, templ->nfields,
-									   g_data.addrs, g_data.lens );
+    printf( "export some data d " );
+    fflush( stdout) ;
+
+    return mnslp_ipfix_export_array( ifh, templ, mes, templ->nfields,
+									   g_mnslp_data.addrs, g_mnslp_data.lens );
 }
 
 
-int _mnslp_ipfix_export_array( ipfix_t          *ifh,
+int mnslp_ipfix_import( ipfix_t *ifh, 
+						mnslp_ipfix_message_t *mes,
+						ipfix_datarecord_t  data )
+{
+    ipfix_hdr_t          hdr;                  /* ipfix packet header */
+    char                 *buf;                 /* ipfix payload */
+    uint16_t             setid, setlen;        /* set id, set lenght */
+    int                  i, nread, offset;     /* counter */
+    int                  bytes, bytesleft;
+    int                  err_flag = 0;
+    char                 *func = "ipfix_parse_raw_msg";
+
+    if ( mnslp_ipfix_parse_hdr( mes, &hdr ) <0 ) {
+        mlogf( 1, "[%s] read invalid msg header!\n", func );
+        return -1;
+    }
+
+    switch( hdr.version ) {
+      case IPFIX_VERSION_NF9:
+          buf   = mes->buffer;
+          nread = IPFIX_HDR_BYTES_NF9;
+          break;
+      case IPFIX_VERSION:
+          buf   = mes->buffer;
+          nread = IPFIX_HDR_BYTES;
+          break;
+      default:
+          return -1;
+    }
+
+    /* 
+     *  TODO AM: Remove because it seems that it not what we need 
+    if ( ipfix_export_hdr( src, &hdr ) <0 )
+        return -1;
+     */
+
+    /** read ipfix sets
+     */
+    for ( i=0; (nread+4) < (mes->offset); i++ ) {
+
+        if ( (hdr.version == IPFIX_VERSION_NF9)
+             && (i>=hdr.u.nf9.count) ) {
+            break;
+        }
+
+        /** read ipfix record header (set id, lenght). Verifies that the lenght 
+         *  given is valid.
+         */
+        setid   = READ16(buf+nread);
+        setlen  = READ16(buf+nread+2);
+        nread  += 4;
+        if ( setlen <4 ) {
+            mlogf( 0, "[%s] set%d: invalid set length %d\n",
+                   func, i+1, setlen );
+            continue;
+        }
+        setlen -= 4;
+        if (setlen > (mes->offset - nread)) {
+			int ii;
+
+			for (ii = 0; ii < mes->offset; ii++)
+				fprintf(stderr, "[%02x]", ((mes->buffer)[ii] & 0xFF));
+			fprintf(stderr, "\n");
+
+			mlogf(0, "[%s] set%d: message too short (%d>%d)!\n", func, i + 1,
+					setlen + nread, (int) mes->offset);
+			goto end;
+		}
+
+		mlogf(4, "[%s] set%d: sid=%u, setid=%d, setlen=%d\n", func, i + 1,
+				(u_int) hdr.sourceid, setid, setlen + 4);
+
+		/** read rest of ipfix message
+         */
+        if ( (setid == IPFIX_SETID_TEMPLATE_NF9)
+             || (setid == IPFIX_SETID_OPTTEMPLATE_NF9)
+             || (setid == IPFIX_SETID_TEMPLATE)
+             || (setid == IPFIX_SETID_OPTTEMPLATE) ) {
+            /** parse a template set ( option or normal template ).
+             */
+
+            for (offset = nread, bytesleft = setlen; bytesleft > 4;) {
+
+				mlogf(4, "[%s] set%d: decode template, setlen=%d, left=%d\n",
+						func, i + 1, setlen, bytesleft);
+
+				ipfix_template_t  		*ipfixt  = NULL;
+
+				if (mnslp_ipfix_decode_trecord(ifh, setid, buf + offset, bytesleft,
+						&bytes, &ipfixt) < 0) {
+					mlogf(0, "[%s] record%d: decode template failed: %s\n",
+							func, i + 1, strerror(errno));
+					break;
+				} else {
+
+					bytesleft -= bytes;
+					offset += bytes;
+					mlogf(4, "[%s] set%d: %d bytes decoded\n", func, i + 1,
+							bytes);
+				}
+			}
+            nread += setlen;
+        }
+        else if ( setid >255 )
+        {
+            /** get template
+             */
+            ipfix_template_t  		*ipfixt = NULL;
+
+            if ( (ipfixt = mnslp_get_template(ifh, setid)) == NULL ) {
+                mlogf( 0, "[%s] no template for %d, skip data set\n",
+                       func, setid );
+                nread += setlen;
+                err_flag = 1;
+            }
+            else {
+
+                /** read data records
+                 */
+                for ( offset=nread, bytesleft=setlen; bytesleft>4; ) {
+                    if ( mnslp_ipfix_decode_datarecord( ipfixt, buf+offset, bytesleft,
+                                                  &bytes, &data ) <0 ) {
+                        mlogf( 0, "[%s] set%d: decode record failed: %s\n",
+                               func, i+1, strerror(errno) );
+                        goto errend;
+                    }
+
+                    //(void) ipfix_export_datarecord( src, t, &data );
+
+                    bytesleft -= bytes;
+                    offset    += bytes;
+                }
+
+                if ( bytesleft ) {
+                    mlogf( 3, "[%s] set%d: skip %d bytes padding\n",
+                           func, i+1, bytesleft );
+                }
+                nread += setlen;
+            }
+        }
+        else {
+            mlogf( 0, "[%s] set%d: invalid set id %d, set skipped!\n",
+                   func, i+1, setid );
+            nread += setlen;
+        }
+    } /* for (read sets */
+
+    if ( err_flag )
+        goto errend;
+
+ end:
+    ipfix_free_datarecord( &data );
+    return nread;
+
+ errend:
+    ipfix_free_datarecord( &data );
+    return -1;
+	
+}
+
+int mnslp_ipfix_export_array( ipfix_t          *ifh,
 							  ipfix_template_t *templ,
 							  mnslp_ipfix_message_t *mes, 
 							  int              nfields,
@@ -78,18 +678,11 @@ int _mnslp_ipfix_export_array( ipfix_t          *ifh,
 {
     int ret;
 
-    mod_lock();
     ret = _mnslp_ipfix_export_array( ifh, templ, mes, nfields, fields, lengths );
-    mod_unlock();
 
     return ret;
 }
 
-void allocate_additional_memory(mnslp_ipfix_message_t *mes, size_t additional)
-{
-	if ((mes->offset + additional) > sizeof(mes->buffer))
-		mes->buffer=(char *)realloc(mes->buffer, mes->offset + additional + 1);
-}
 
 /*
  * name:        _ipfix_write_template()
@@ -208,50 +801,35 @@ int _mnslp_ipfix_write_template( ipfix_t           *ifh,
     return 0;
 }
 
-/* Name      : do_writen
- * Parameter : > mes   		output message
- *             > *ptr       buffer
- *             > nbytes     number of bytes to write
- * Purpose   : write 'n' bytes to message
- * Returns   : number of written bytes.
- */
-static int _mnslp_do_writen( mnslp_ipfix_message_t *mes, char *ptr, int nbytes )
+
+
+mnslp_iobuf_t *_mnslp_ipfix_getbuf ( void )
 {
-    int     nleft, nwritten;
-#ifdef DEBUG
-    int     i;
+    mnslp_iobuf_t *b = g_buflist;
 
-    for ( i=0; i<nbytes; i++ )
-        fprintf( stderr, "[%02x]", (ptr[i]&0xFF) );
-    fprintf( stderr, "\n" );
-#endif
-
-    allocate_additional_memory(mes, nbytes);
-    memcpy( mes->buffer+mes->offset, ptr, nbytes );
-    return nbytes;
-}
-
-
-int _mnslp_ipfix_send_msg( ipfix_t *ifh, mnslp_ipfix_message_t *mes, iobuf_t *buf )
-{
-    int i, retval =-1;
-
-
-    /* send ipfix message */
-    if ( _mnslp_do_writen( mes, buf->buffer, buf->buflen )
-         != (int)buf->buflen ) {
-         return -1;
+    if ( b ) {
+        g_buflist = b->next;
+        b->next = NULL;
     }
-    retval =0;
-    return retval;
+
+    return b;
 }
+
+void _mnslp_ipfix_freebuf( mnslp_iobuf_t *b )
+{
+    if ( b ) {
+        b->next = g_buflist;
+        g_buflist = b;
+    }
+}
+
 
 /*
  * name:        _msnlp_ipfix_write_hdr()
  * parameters:
  * return:      0/-1
  */
-int _mnslp_ipfix_write_hdr( ipfix_t *ifh, iobuf_t *buf )
+int _mnslp_ipfix_write_hdr( ipfix_t *ifh, mnslp_iobuf_t *buf )
 {
     time_t      now = time(NULL);
 
@@ -262,10 +840,10 @@ int _mnslp_ipfix_write_hdr( ipfix_t *ifh, iobuf_t *buf )
         ifh->seqno++;
         INSERTU16( buf->buffer+buf->buflen, buf->buflen, ifh->version );
         INSERTU16( buf->buffer+buf->buflen, buf->buflen, ifh->nrecords );
-        INSERTU32( buf->buffer+buf->buflen, buf->buflen, ((now-g_tstart)*1000));
+        INSERTU32( buf->buffer+buf->buflen, buf->buflen, ((now)*1000));
         INSERTU32( buf->buffer+buf->buflen, buf->buflen, now );
         INSERTU32( buf->buffer+buf->buflen, buf->buflen, ifh->seqno );
-        MSNLP_INSERTU32( buf->buffer+buf->buflen, buf->buflen, ifh->sourceid );
+        INSERTU32( buf->buffer+buf->buflen, buf->buflen, ifh->sourceid );
     }
     else {
         buf->buflen = 0;
@@ -283,10 +861,11 @@ int _mnslp_ipfix_write_hdr( ipfix_t *ifh, iobuf_t *buf )
 /* name:        _mnslp_ipfix_export_flush()
  * parameters:
  */
-int _mnslp_ipfix_export_flush( ipfix_t *ifh, mnslp_ipfix_message_t *mes )
+int _mnslp_ipfix_export_flush( ipfix_t *ifh, 
+							   mnslp_ipfix_message_t *mes )
 {
-    iobuf_t           *buf;
-    int               ret;
+    mnslp_iobuf_t     *buf;
+    int        		 ret;
 
     if ( (ifh==NULL) || (ifh->offset==0) )
         return 0;
@@ -296,7 +875,7 @@ int _mnslp_ipfix_export_flush( ipfix_t *ifh, mnslp_ipfix_message_t *mes )
         _finish_cs( ifh );
     }
     
-    if ( (buf=_ipfix_getbuf()) ==NULL )
+    if ( (buf= _mnslp_ipfix_getbuf()) ==NULL )
         return -1;
 
 #ifdef DEBUG
@@ -316,13 +895,11 @@ int _mnslp_ipfix_export_flush( ipfix_t *ifh, mnslp_ipfix_message_t *mes )
         ifh->nrecords = 0;
     }
 
-    _ipfix_freebuf( buf );
+    _mnslp_ipfix_freebuf( buf );
     return ret;
 }
 
-
-
-int _mnlsp_ipfix_export_array( ipfix_t          *ifh,
+int _mnslp_ipfix_export_array( ipfix_t          *ifh,
 							   ipfix_template_t *templ,
 							   mnslp_ipfix_message_t *mes,
 							   int              nfields,
@@ -353,7 +930,7 @@ int _mnlsp_ipfix_export_array( ipfix_t          *ifh,
     }
     else {
         if ( ifh->cs_tid > 0 ) {
-            _mnslp_finish_cs( ifh );
+            _finish_cs( ifh );
         }
         newset_f = 1;
         datasetlen = 4;
@@ -433,171 +1010,3 @@ int _mnlsp_ipfix_export_array( ipfix_t          *ifh,
     return 0;
 }
 
-
-
-int main ( int argc, char **argv )
-{
-    char      *optstr="hc:p:vstu";
-    int       opt;
-    char      chost[256];
-    int       protocol = IPFIX_PROTO_TCP;
-    int       j;
-    uint32_t  bytes    = 1234;
-    char      buf[31]  = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
-                           11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-                           21, 22, 23, 24, 25, 26, 27, 28, 29, 30 };
-
-    ipfix_t           *ipfixh  = NULL;
-    ipfix_template_t  *ipfixt  = NULL;
-    int               sourceid = 12345;
-    int               port     = IPFIX_PORTNO;
-    int               verbose_level = 0;
-
-    /* set default host */
-    strcpy(chost, "localhost");
-
-    /** process command line args
-     */
-    while( ( opt = getopt( argc, argv, optstr ) ) != EOF )
-    {
-	switch( opt )
-	{
-	  case 'p':
-	    if ((port=atoi(optarg)) <0) {
-		fprintf( stderr, "Invalid -p argument!\n" );
-		exit(1);
-	    }
-            break;
-
-	  case 'c':
-            strcpy(chost, optarg);
-	    break;
-
-          case 's':
-              protocol = IPFIX_PROTO_SCTP;
-              break;
-
-          case 't':
-              protocol = IPFIX_PROTO_TCP;
-              break;
-
-          case 'u':
-              protocol = IPFIX_PROTO_UDP;
-              break;
-
-          case 'v':
-              verbose_level ++;
-              break;
-
-	  case 'h':
-	  default:
-              fprintf( stderr, "usage: %s [-hstuv] [-c collector] [-p portno]\n" 
-                       "  -h               this help\n"
-                       "  -c <collector>   collector address\n"
-                       "  -p <portno>      collector port number (default=%d)\n"
-                       "  -s               send data via SCTP\n"
-                       "  -t               send data via TCP (default)\n"
-                       "  -u               send data via UDP\n"
-                       "  -v               increase verbose level\n\n",
-                       argv[0], IPFIX_PORTNO  );
-              exit(1);
-	}
-    }
-
-    /** init loggin
-     */
-    mlog_set_vlevel( verbose_level );
-
-    /** init lib 
-     */
-    if ( ipfix_init() <0) {
-        fprintf( stderr, "cannot init ipfix module: %s\n", strerror(errno) );
-        exit(1);
-    }
-
-    /** open ipfix exporter
-     */
-    if ( ipfix_open( &ipfixh, sourceid, IPFIX_VERSION ) <0 ) {
-        fprintf( stderr, "ipfix_open() failed: %s\n", strerror(errno) );
-        exit(1);
-    }
-
-    /** set collector to use
-     */
-    if ( ipfix_add_collector( ipfixh, chost, port, protocol ) <0 ) {
-        fprintf( stderr, "ipfix_add_collector(%s,%d) failed: %s\n", 
-                 chost, port, strerror(errno));
-        exit(1);
-    }
-
-    /** get template
-     */
-    if ( ipfix_new_data_template( ipfixh, &ipfixt, 2 ) <0 ) {
-        fprintf( stderr, "ipfix_new_template() failed: %s\n", 
-                 strerror(errno) );
-        exit(1);
-    }
-    if ( (ipfix_add_field( ipfixh, ipfixt, 
-                           0, IPFIX_FT_SOURCEIPV4ADDRESS, 4 ) <0 ) 
-         || (ipfix_add_field( ipfixh, ipfixt, 
-                              0, IPFIX_FT_PACKETDELTACOUNT, 4 ) <0 ) ) {
-        fprintf( stderr, "ipfix_new_template() failed: %s\n", 
-                 strerror(errno) );
-        exit(1);
-    }
-
-    if ( ipfix_export( ipfixh, ipfixt, buf, &bytes ) <0 ) {
-          fprintf( stderr, "ipfix_export() failed: %s\n", 
-                     strerror(errno) );
-          exit(1);
-    }
-
-    iobuf_t           *buf;
-    _ipfix_write_hdr( ifh, buf );
-    memcpy( buf->buffer+buf->buflen, ifh->buffer, ifh->offset );
-    buf->buflen += ifh->offset;
-
-    printf( "[%d] export some data ... ", j );
-    fflush( stdout) ;
-
-    if ( ipfix_export( ipfixh, ipfixt, buf, &bytes ) <0 ) {
-         fprintf( stderr, "ipfix_export() failed: %s\n", 
-                     strerror(errno) );
-         exit(1);
-    }
-
-
-
-    /** export some data
-    for( j=0; j<10; j++ ) {
-
-        printf( "[%d] export some data ... ", j );
-        fflush( stdout) ;
-
-        if ( ipfix_export( ipfixh, ipfixt, buf, &bytes ) <0 ) {
-            fprintf( stderr, "ipfix_export() failed: %s\n", 
-                     strerror(errno) );
-            exit(1);
-        }
-
-        if ( ipfix_export_flush( ipfixh ) <0 ) {
-            fprintf( stderr, "ipfix_export_flush() failed: %s\n", 
-                     strerror(errno) );
-            exit(1);
-        }
-
-        printf( "done.\n" );
-        bytes++;
-        sleep(1);
-    }
-     */
-
-    printf( "data exported.\n" );
-
-    /** clean up
-     */
-    ipfix_delete_template( ipfixh, ipfixt );
-    ipfix_close( ipfixh );
-    ipfix_cleanup();
-    exit(0);
-}

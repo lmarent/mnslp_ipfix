@@ -49,7 +49,7 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
-am_msnlp_ipfix_OBJECTS = main.$(OBJEXT)
+am_msnlp_ipfix_OBJECTS = main.$(OBJEXT) mnslp_libipfix.$(OBJEXT)
 msnlp_ipfix_OBJECTS = $(am_msnlp_ipfix_OBJECTS)
 msnlp_ipfix_DEPENDENCIES =
 DEFAULT_INCLUDES = -I.
@@ -64,6 +64,15 @@ LTCOMPILE = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
+	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
+LTCXXCOMPILE = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
+	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
+CXXLD = $(CXX)
+CXXLINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
 SOURCES = $(msnlp_ipfix_SOURCES)
 DIST_SOURCES = $(msnlp_ipfix_SOURCES)
@@ -193,17 +202,17 @@ top_build_prefix = ../
 top_builddir = ..
 top_srcdir = ..
 AUTOMAKE_OPTIONS = foreign
-msnlp_ipfix_SOURCES = main.c
+msnlp_ipfix_SOURCES = main.c mnslp_libipfix.cpp
 msnlp_ipfix_LDADD = -lipfix -lmisc
 
 # what flags you want to pass to the C compiler & linker
-AM_CPPFLAGS = -I/user/local/include
+AM_CPPFLAGS = -g -I../include -I/user/local/include
 AM_LDFLAGS = -L/user/local/lib
 LDADD = 
 all: all-am
 
 .SUFFIXES:
-.SUFFIXES: .c .lo .o .obj
+.SUFFIXES: .c .cpp .lo .o .obj
 $(srcdir)/Makefile.in: # $(srcdir)/Makefile.am  $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
@@ -279,7 +288,7 @@ clean-binPROGRAMS:
 	rm -f $$list
 msnlp_ipfix$(EXEEXT): $(msnlp_ipfix_OBJECTS) $(msnlp_ipfix_DEPENDENCIES) $(EXTRA_msnlp_ipfix_DEPENDENCIES) 
 	@rm -f msnlp_ipfix$(EXEEXT)
-	$(LINK) $(msnlp_ipfix_OBJECTS) $(msnlp_ipfix_LDADD) $(LIBS)
+	$(CXXLINK) $(msnlp_ipfix_OBJECTS) $(msnlp_ipfix_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -288,6 +297,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 include ./$(DEPDIR)/main.Po
+include ./$(DEPDIR)/mnslp_libipfix.Po
 
 .c.o:
 	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -309,6 +319,27 @@ include ./$(DEPDIR)/main.Po
 #	source='$<' object='$@' libtool=yes \
 #	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
 #	$(LTCOMPILE) -c -o $@ $<
+
+.cpp.o:
+	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+#	source='$<' object='$@' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(CXXCOMPILE) -c -o $@ $<
+
+.cpp.obj:
+	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
+	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+#	source='$<' object='$@' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
+
+.cpp.lo:
+	$(LTCXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
+#	source='$<' object='$@' libtool=yes \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(LTCXXCOMPILE) -c -o $@ $<
 
 mostlyclean-libtool:
 	-rm -f *.lo
