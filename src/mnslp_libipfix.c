@@ -41,13 +41,19 @@
 #define NODEBUG
 #define IPFIX_DEFAULT_BUFLEN  1400
 
-#define INSERTU16(b,l,val) \
-        { uint16_t _t=htons((val)); memcpy((b),&_t,2); (l)+=2; }
-#define INSERTU32(b,l,val) \
-        { uint32_t _t=htonl((val)); memcpy((b),&_t,4); (l)+=4; }
+//#define INSERTU16(b,l,val) \
+//        { uint16_t _t=htons((val)); memcpy((b),&_t,2); (l)+=2; }
+//#define INSERTU32(b,l,val) \
+//        { uint32_t _t=htonl((val)); memcpy((b),&_t,4); (l)+=4; }
 
 #define READ16(b) ((*(b)<<8)|*((b)+1))
 #define READ32(b) ((((((*(b)<<8)|*(b+1))<<8)|(*(b+2)))<<8)|*(b+3))
+
+#define INSERTU16(b,l,val) \
+        { uint16_t _t=(val); memcpy((b),&_t,2); (l)+=2; }
+#define INSERTU32(b,l,val) \
+        { uint32_t _t=(val); memcpy((b),&_t,4); (l)+=4; }
+
 
 
 typedef struct ipfixiobuf
@@ -105,8 +111,16 @@ int mnslp_ipfix_parse_hdr( mnslp_ipfix_message_t *mes, ipfix_hdr_t *hdr )
 {
     uint16_t version = READ16(mes->buffer);
 
+	printf (" Arrive 1.1 [%u]", version);
+	fflush( stdout) ;
+
+
     switch ( version ) {
       case IPFIX_VERSION_NF9:
+
+		  printf (" Arrive 1.3");
+		  fflush( stdout) ;
+
           if ( (mes->offset) < IPFIX_HDR_BYTES_NF9 )
               return -1;
           hdr->version = version;
@@ -118,6 +132,10 @@ int mnslp_ipfix_parse_hdr( mnslp_ipfix_message_t *mes, ipfix_hdr_t *hdr )
           break;
 
       case IPFIX_VERSION:
+
+		  printf (" Arrive 1.4");
+		  fflush( stdout) ;
+
           if ( (mes->offset) < IPFIX_HDR_BYTES )
               return -1;
           hdr->version = version;
@@ -125,13 +143,24 @@ int mnslp_ipfix_parse_hdr( mnslp_ipfix_message_t *mes, ipfix_hdr_t *hdr )
           hdr->u.ipfix.exporttime = READ32(mes->buffer+4);
           hdr->seqno = READ32(mes->buffer+8);
           hdr->sourceid = READ32(mes->buffer+12);
+
           break;
 
       default:
+		  printf (" Arrive 1.5");
+		  fflush( stdout) ;
+
           hdr->version = -1;
           return -1;
     }
+	printf (" Arrive 1.2");
+	fflush( stdout) ;
+
+
     return 0;
+
+
+
 }
 
 ipfix_template_t * mnslp_get_template(ipfix_t 			   *ifh, 
@@ -459,10 +488,12 @@ void ipfix_message_release( mnslp_ipfix_message_t * ipfix_message )
 
 int mnslp_ipfix_export( ipfix_t *ifh, 
 					    mnslp_ipfix_message_t *mes, 
-					    ipfix_template_t *templ, ... )
+					    ipfix_template_t *templ, char *fmt, ... )
 {
     int       i;
     va_list   args;
+    int d;
+    char c, *s;
 
     if ( !templ ) {
         errno = EINVAL;
@@ -485,19 +516,46 @@ int mnslp_ipfix_export( ipfix_t *ifh,
         g_mnslp_data.maxfields = templ->nfields;
     }
 
-    printf( "export some data c " );
+    printf( "export some data c \n" );
     fflush( stdout) ;
+    
+    va_start(args, fmt);
+    while (*fmt)
+        switch (*fmt++) {
+        case 's':              /* string */
+            s = va_arg(args, char *);
+            printf("string %s\n", s);
+            break;
+        case 'd':              /* int */
+            d = va_arg(args, int);
+            printf("int %d\n", d);
+            break;
+        case 'c':              /* char */
+            /* need a cast here since va_arg only
+               takes fully promoted types */
+            c = (char) va_arg(args, int);
+            printf("char %c\n", c);
+            break;
+        }
+    va_end(args);
+    
     
     /** collect pointers
      */
-    va_start(args, templ);
+    va_start(args, fmt);
     for ( i=0; i<templ->nfields; i++ )
     {
-        g_mnslp_data.addrs[i] = va_arg(args, char*);          /* todo: change this! */
+        printf ("nfield: %d", i);
+        char *temp = va_arg(args, char*);
+        
+        g_mnslp_data.addrs[i] = temp;          /* todo: change this! */
+        printf ("data: %c", *temp);
+        printf ("size of data: %d", sizeof(temp) );
         if ( templ->fields[i].flength == IPFIX_FT_VARLEN )
             g_mnslp_data.lens[i] = va_arg(args, int);
         else
             g_mnslp_data.lens[i] = templ->fields[i].flength;
+        printf ("length: %d \n", g_mnslp_data.lens[i]);
     }
     va_end(args);
 
@@ -519,13 +577,16 @@ int mnslp_ipfix_import( ipfix_t *ifh,
     int                  i, nread, offset;     /* counter */
     int                  bytes, bytesleft;
     int                  err_flag = 0;
-    char                 *func = "ipfix_parse_raw_msg";
+    char                 *func = "mnslp_ipfix_import";
 
     if ( mnslp_ipfix_parse_hdr( mes, &hdr ) <0 ) {
         mlogf( 1, "[%s] read invalid msg header!\n", func );
         return -1;
     }
-
+	
+	printf (" Arrive 1");
+	fflush( stdout) ;
+	
     switch( hdr.version ) {
       case IPFIX_VERSION_NF9:
           buf   = mes->buffer;
@@ -538,6 +599,9 @@ int mnslp_ipfix_import( ipfix_t *ifh,
       default:
           return -1;
     }
+
+	printf (" Arrive 2");
+	fflush( stdout) ;
 
     /* 
      *  TODO AM: Remove because it seems that it not what we need 
@@ -678,8 +742,15 @@ int mnslp_ipfix_export_array( ipfix_t          *ifh,
 {
     int ret;
 
-    ret = _mnslp_ipfix_export_array( ifh, templ, mes, nfields, fields, lengths );
-
+	printf("mnslp_ipfix_export_array:\n");
+    if (_mnslp_ipfix_export_array( ifh, templ, mes, nfields, fields, lengths ) < 0 )
+    {
+		fprintf(stderr, "_mnslp_ipfix_export_array error:\n");
+		return -1;
+	}
+	printf("_mnslp_ipfix_export_flush: \n");
+	fflush( stdout) ;
+	ret = _mnslp_ipfix_export_flush(ifh,  mes);
     return ret;
 }
 
@@ -833,6 +904,9 @@ int _mnslp_ipfix_write_hdr( ipfix_t *ifh, mnslp_iobuf_t *buf )
 {
     time_t      now = time(NULL);
 
+    printf("version export : %d \n", ifh->version);
+    fflush( stdout) ;
+
     /** fill ipfix header
      */
     if ( ifh->version == IPFIX_VERSION_NF9 ) {
@@ -866,6 +940,9 @@ int _mnslp_ipfix_export_flush( ipfix_t *ifh,
 {
     mnslp_iobuf_t     *buf;
     int        		 ret;
+
+    printf("in function  _mnslp_ipfix_export_flush: \n");
+    fflush( stdout) ;
 
     if ( (ifh==NULL) || (ifh->offset==0) )
         return 0;
@@ -910,18 +987,27 @@ int _mnslp_ipfix_export_array( ipfix_t          *ifh,
     size_t            buflen, datasetlen;
     uint8_t           *p, *buf;
 
+    
+
     /** parameter check
      */
     if ( (templ==NULL) || (nfields!=templ->nfields) ) {
         errno = EINVAL;
         return -1;
     }
-
+	
+	printf("in function  _mnslp_ipfix_export_array: \n");
+	printf( "Time send: %s", ctime (templ->tsend) );
+	
+	printf("message characters: %d \n", mes->offset);
+    
     if ( templ->tsend == 0 ) {
 		if ( _mnslp_ipfix_write_template( ifh, mes, templ ) <0 )
-			return -1;
+			return -1;		
     }
-
+    
+    printf("message header written: %d \n", mes->offset);
+  
     /** get size of data set, check space
      */
     if ( templ->tid == ifh->cs_tid ) {
@@ -951,6 +1037,9 @@ int _mnslp_ipfix_export_array( ipfix_t          *ifh,
         datasetlen += lengths[i];
     }
 
+    printf("datasetlen: %d", datasetlen);
+    fflush( stdout) ;
+
     if ( (ifh->offset + datasetlen) > IPFIX_DEFAULT_BUFLEN ) {
         if ( ifh->cs_tid )
             _finish_cs( ifh );
@@ -958,8 +1047,7 @@ int _mnslp_ipfix_export_array( ipfix_t          *ifh,
 
         if ( _mnslp_ipfix_export_flush( ifh, mes ) <0 )
             return -1;
-    }
-
+    }   
 
     /* fill buffer */
     buf    = (uint8_t*)(ifh->buffer) + ifh->offset;
@@ -976,6 +1064,10 @@ int _mnslp_ipfix_export_array( ipfix_t          *ifh,
     }
     /* csc: to be checked with Lutz whether the usage of "datasetlen" 
      * in the last 30 lines of code is correct */
+
+
+    printf("offf set ifh: %d", ifh->offset);
+    fflush( stdout) ;
 
     /* insert data record
      */
@@ -1001,12 +1093,17 @@ int _mnslp_ipfix_export_array( ipfix_t          *ifh,
         buflen += lengths[i];
     }
 
+    printf("dddd _mnslp_ipfix_export_array: %d \n", mes->offset);
+
     ifh->nrecords ++;
     ifh->offset += buflen;
     ifh->cs_bytes += buflen;
     if ( ifh->version == IPFIX_VERSION ) {
         ifh->seqno ++;
     }
+
+    printf("end _mnslp_ipfix_export_array: %d \n", mes->offset);
+
     return 0;
 }
 

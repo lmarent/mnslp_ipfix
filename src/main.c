@@ -17,6 +17,7 @@ int main ( int argc, char **argv )
     int       protocol = IPFIX_PROTO_TCP;
     int       j;
     uint32_t  bytes    = 1234;
+    char 	  con[1]   = {'c'};
     char      buf[31]  = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
                            11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
                            21, 22, 23, 24, 25, 26, 27, 28, 29, 30 };
@@ -99,7 +100,7 @@ int main ( int argc, char **argv )
 	
     /** get template
      */
-    if ( ipfix_new_data_template( ipfixh, &ipfixt, 2 ) <0 ) {
+    if ( ipfix_new_data_template( ipfixh, &ipfixt, 3 ) <0 ) {
         fprintf( stderr, "ipfix_new_template() failed: %s\n", 
                  strerror(errno) );
         exit(1);
@@ -112,6 +113,15 @@ int main ( int argc, char **argv )
                  strerror(errno) );
         exit(1);
     }
+
+    if ( (ipfix_add_field( ipfixh, ipfixt, 0, IPFIX_FT_INGRESSINTERFACE, 4 ) ) <0 ) {
+        
+        fprintf( stderr, "ipfix_insert field() failed: %s\n", 
+                 strerror(errno) );
+        exit(1);
+							   
+	}
+
 
     printf( "[%d] export some data a ", j );
     fflush( stdout) ;
@@ -126,13 +136,27 @@ int main ( int argc, char **argv )
     printf( "[%d] export some data b ", j );
     fflush( stdout) ;
 
-    if ( mnslp_ipfix_export( ipfixh, mes, ipfixt, buf, &bytes ) <0 ) {
+    if ( mnslp_ipfix_export( ipfixh, mes, ipfixt, con, buf, &bytes ) <0 ) {
          fprintf( stderr, "ipfix_export() failed: %s\n", 
                      strerror(errno) );
          exit(1);
     }
 
+	printf( "[%d] export some data b ", bytes );
+    fflush( stdout) ;
 
+    // With the following code lines, we test that we can decode the message.
+
+	ipfix_datarecord_t  data = {NULL, NULL, 0};
+	if ( mnslp_ipfix_import( ipfixh, mes,  data ) < 0 )
+	{
+		fprintf( stderr, "ipfix_import() failed: %s\n", 
+                     strerror(errno) );
+         exit(1);
+	} 
+	
+	printf (" num fields [%d]", data.maxfields);
+	fflush( stdout) ;
 
     /** export some data
     for( j=0; j<10; j++ ) {
