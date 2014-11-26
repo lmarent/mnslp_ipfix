@@ -16,10 +16,10 @@
 
 
 
-pkgdatadir = $(datadir)/msnlp_ipfix
-pkgincludedir = $(includedir)/msnlp_ipfix
-pkglibdir = $(libdir)/msnlp_ipfix
-pkglibexecdir = $(libexecdir)/msnlp_ipfix
+pkgdatadir = $(datadir)/mnslp_ipfix
+pkgincludedir = $(includedir)/mnslp_ipfix
+pkglibdir = $(libdir)/mnslp_ipfix
+pkglibexecdir = $(libexecdir)/mnslp_ipfix
 am__cd = CDPATH="$${ZSH_VERSION+.}$(PATH_SEPARATOR)" && cd
 install_sh_DATA = $(install_sh) -c -m 644
 install_sh_PROGRAM = $(install_sh) -c
@@ -34,7 +34,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = i686-pc-linux-gnu
 host_triplet = i686-pc-linux-gnu
-bin_PROGRAMS = msnlp_ipfix$(EXEEXT)
+bin_PROGRAMS = mnslp_ipfix$(EXEEXT)
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -49,22 +49,13 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
-am_msnlp_ipfix_OBJECTS = main.$(OBJEXT) mnslp_libipfix.$(OBJEXT)
-msnlp_ipfix_OBJECTS = $(am_msnlp_ipfix_OBJECTS)
-msnlp_ipfix_DEPENDENCIES =
+am_mnslp_ipfix_OBJECTS = mnslp_libipfix.$(OBJEXT)
+mnslp_ipfix_OBJECTS = $(am_mnslp_ipfix_OBJECTS)
+mnslp_ipfix_DEPENDENCIES =
 DEFAULT_INCLUDES = -I.
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 am__mv = mv -f
-COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
-	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-LTCOMPILE = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
-	--mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
-	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-CCLD = $(CC)
-LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
-	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
-	$(LDFLAGS) -o $@
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 LTCXXCOMPILE = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
@@ -74,8 +65,8 @@ CXXLD = $(CXX)
 CXXLINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-SOURCES = $(msnlp_ipfix_SOURCES)
-DIST_SOURCES = $(msnlp_ipfix_SOURCES)
+SOURCES = $(mnslp_ipfix_SOURCES)
+DIST_SOURCES = $(mnslp_ipfix_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -96,7 +87,7 @@ CXXCPP = g++ -E
 CXXDEPMODE = depmode=gcc3
 CXXFLAGS = -g -O2
 CYGPATH_W = echo
-DEFS = -DPACKAGE_NAME=\"msnlp_ipfix\" -DPACKAGE_TARNAME=\"msnlp_ipfix\" -DPACKAGE_VERSION=\"0.1\" -DPACKAGE_STRING=\"msnlp_ipfix\ 0.1\" -DPACKAGE_BUGREPORT=\"la.marentes455@uniandes.edu.co\" -DPACKAGE_URL=\"\" -DPACKAGE=\"msnlp_ipfix\" -DVERSION=\"0.1\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DHAVE_DLFCN_H=1 -DLT_OBJDIR=\".libs/\" -DHAVE__BOOL=1 -DHAVE_STDBOOL_H=1
+DEFS = -DPACKAGE_NAME=\"mnslp_ipfix\" -DPACKAGE_TARNAME=\"mnslp_ipfix\" -DPACKAGE_VERSION=\"0.1\" -DPACKAGE_STRING=\"mnslp_ipfix\ 0.1\" -DPACKAGE_BUGREPORT=\"la.marentes455@uniandes.edu.co\" -DPACKAGE_URL=\"\" -DPACKAGE=\"mnslp_ipfix\" -DVERSION=\"0.1\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DHAVE_DLFCN_H=1 -DLT_OBJDIR=\".libs/\" -DHAVE_STDBOOL_H=1
 DEPDIR = .deps
 DLLTOOL = false
 DSYMUTIL = 
@@ -134,11 +125,11 @@ OBJDUMP = objdump
 OBJEXT = o
 OTOOL = 
 OTOOL64 = 
-PACKAGE = msnlp_ipfix
+PACKAGE = mnslp_ipfix
 PACKAGE_BUGREPORT = la.marentes455@uniandes.edu.co
-PACKAGE_NAME = msnlp_ipfix
-PACKAGE_STRING = msnlp_ipfix 0.1
-PACKAGE_TARNAME = msnlp_ipfix
+PACKAGE_NAME = mnslp_ipfix
+PACKAGE_STRING = mnslp_ipfix 0.1
+PACKAGE_TARNAME = mnslp_ipfix
 PACKAGE_URL = 
 PACKAGE_VERSION = 0.1
 PATH_SEPARATOR = :
@@ -202,8 +193,8 @@ top_build_prefix = ../
 top_builddir = ..
 top_srcdir = ..
 AUTOMAKE_OPTIONS = foreign
-msnlp_ipfix_SOURCES = main.c mnslp_libipfix.cpp
-msnlp_ipfix_LDADD = 
+mnslp_ipfix_SOURCES = mnslp_libipfix.cpp
+mnslp_ipfix_LDADD = 
 
 # what flags you want to pass to the C compiler & linker
 AM_CPPFLAGS = -g -I../include 
@@ -212,7 +203,7 @@ LDADD =
 all: all-am
 
 .SUFFIXES:
-.SUFFIXES: .c .cpp .lo .o .obj
+.SUFFIXES: .cpp .lo .o .obj
 $(srcdir)/Makefile.in: # $(srcdir)/Makefile.am  $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
@@ -286,9 +277,9 @@ clean-binPROGRAMS:
 	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
 	echo " rm -f" $$list; \
 	rm -f $$list
-msnlp_ipfix$(EXEEXT): $(msnlp_ipfix_OBJECTS) $(msnlp_ipfix_DEPENDENCIES) $(EXTRA_msnlp_ipfix_DEPENDENCIES) 
-	@rm -f msnlp_ipfix$(EXEEXT)
-	$(CXXLINK) $(msnlp_ipfix_OBJECTS) $(msnlp_ipfix_LDADD) $(LIBS)
+mnslp_ipfix$(EXEEXT): $(mnslp_ipfix_OBJECTS) $(mnslp_ipfix_DEPENDENCIES) $(EXTRA_mnslp_ipfix_DEPENDENCIES) 
+	@rm -f mnslp_ipfix$(EXEEXT)
+	$(CXXLINK) $(mnslp_ipfix_OBJECTS) $(mnslp_ipfix_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -296,29 +287,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-include ./$(DEPDIR)/main.Po
 include ./$(DEPDIR)/mnslp_libipfix.Po
-
-.c.o:
-	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
-#	source='$<' object='$@' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
-#	$(COMPILE) -c $<
-
-.c.obj:
-	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
-	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
-#	source='$<' object='$@' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
-#	$(COMPILE) -c `$(CYGPATH_W) '$<'`
-
-.c.lo:
-	$(LTCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
-#	source='$<' object='$@' libtool=yes \
-#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
-#	$(LTCOMPILE) -c -o $@ $<
 
 .cpp.o:
 	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<

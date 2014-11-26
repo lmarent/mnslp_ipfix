@@ -27,6 +27,7 @@ int  mlog_open  ( char *logfile, char *prefix );
 void mlog_close ( void );
 void mlog_set_vlevel( int vlevel );
 
+
 #ifdef   __cplusplus
 }
 #endif

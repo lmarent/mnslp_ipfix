@@ -68,9 +68,9 @@ namespace mnslp_ipfix
 
     typedef struct mnslp_ipfix_message
     {
-	char        *buffer;   						/* message buffer */
-	int         nrecords;                       /* no. of records in buffer */
-	size_t      offset;                         /* output buffer fill level */
+    	char        *buffer;   						/* message buffer */
+    	int         nrecords;                       /* no. of records in buffer */
+    	size_t      offset;                         /* output buffer fill level */
     } mnslp_ipfix_message_t;
 
 
@@ -95,31 +95,90 @@ namespace mnslp_ipfix
     } mnslp_ipfix_node_t;
 
 
-    class mnslp_ipfix
+    class mnslp_ipfix_mes
     {
 
 	private:
-	   time_t             	g_tstart = 0;
-	   mnslp_iobuf_t      	g_iobuf[2], *g_buflist =NULL;
+	   
+      // attributes
+       time_t             	g_tstart = 0;
+	   mnslp_iobuf_t      	g_iobuf[2], *g_buflist=NULL;
 	   ipfix_collector_t 	*g_collectors =NULL;
 	   mnslp_ipfix_node_t 	*g_ipfixlist =NULL;
 	   uint16_t           	g_lasttid;                 
 	   ipfix_datarecord_t 	g_data = { NULL, NULL, 0 }; 
 	   ipfix_field_t      	*g_ipfix_fields;
+	  
+	  // private methods
+	   
+	  void allocate_additional_memory(mnslp_ipfix_message_t *mes, size_t additional);
+	  
+	  int _mnslp_do_writen( mnslp_ipfix_message_t *mes, char *ptr, int nbytes );
+	  
+	  int mnslp_ipfix_parse_hdr( mnslp_ipfix_message_t *mes, ipfix_hdr_t *hdr );
+	  
+	  ipfix_template_t * mnslp_get_template(ipfix_t *ifh, uint16_t tid_param);
+	  
+	  int mnslp_ipfix_decode_trecord( ipfix_t *ifh,
+	  								int            setid,
+	  								const char     *buf,
+	  								size_t         len,
+	  								int            *nread,
+	  								ipfix_template_t **templ );
+	  
+	  int mnslp_ipfix_decode_datarecord( ipfix_template_t   *t,
+	  								   char      		  *buf, 
+	  								   int                buflen,
+	  								   int                *nread,
+	  								   ipfix_datarecord_t *data );
+	  
+	  int _mnslp_ipfix_send_msg( ipfix_t *ifh, 
+	  						   mnslp_ipfix_message_t *mes, 
+	  						   mnslp_iobuf_t *buf );
+	 
+	  void _finish_cs( ipfix_t *ifh );
+	  
+	  int mnslp_ipfix_export_array( ipfix_t          *ifh,
+	  							  ipfix_template_t *templ,
+	  							  mnslp_ipfix_message_t *mes, 
+	  							  int              nfields,
+	  							  void             **fields,
+	  							  uint16_t         *lengths );
 
-       public:
+	  int _mnslp_ipfix_write_template( ipfix_t           *ifh,
+	  								 mnslp_ipfix_message_t *mes,
+	  								 ipfix_template_t  *templ );
+	  
+	  mnslp_iobuf_t *_mnslp_ipfix_getbuf ( void );
+	  
+	  void _mnslp_ipfix_freebuf( mnslp_iobuf_t *b );
+	  
+	  int _mnslp_ipfix_write_hdr( ipfix_t *ifh, mnslp_iobuf_t *buf );
+	  
+	  int _mnslp_ipfix_export_flush( ipfix_t *ifh, 
+	  							   mnslp_ipfix_message_t *mes );
+	  
+	  int _mnslp_ipfix_export_array( ipfix_t          *ifh,
+	  							   ipfix_template_t *templ,
+	  							   mnslp_ipfix_message_t *mes,
+	  							   int              nfields,
+	  							   void             **fields,
+	  							   uint16_t         *lengths );
+
+    public:
 
 	   int mnslp_ipfix_export( ipfix_t *ifh, 
 	   			   mnslp_ipfix_message_t *mes, 
 				   ipfix_template_t *templ, ... );
 
+	   int mnslp_ipfix_import( ipfix_t *ifh, 
+	  			   mnslp_ipfix_message_t *mes,
+				   ipfix_datarecord_t  data );
+	   
 	   int mnslp_message_create( mnslp_ipfix_message_t ** ipfix_message  );
 						    
 	   void ipfix_message_release( mnslp_ipfix_message_t * ipfix_message );
 
-	   int mnslp_ipfix_import( ipfix_t *ifh, 
-	  			   mnslp_ipfix_message_t *mes,
-				   ipfix_datarecord_t  data );
 
 
     };

@@ -2,10 +2,11 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.68])
-AC_INIT([msnlp_ipfix], [0.1], [la.marentes455@uniandes.edu.co])
+AC_INIT([mnslp_ipfix], [0.1], [la.marentes455@uniandes.edu.co])
 AM_INIT_AUTOMAKE
 LT_INIT
-AC_CONFIG_SRCDIR([src/main.c])
+AC_CONFIG_SRCDIR([src/mnslp_libipfix.cpp])
+AC_CONFIG_MACRO_DIR([m4])
 
 ## ------------------------Begin instantiation part 
 ## Meaning:
@@ -23,6 +24,7 @@ AC_PROG_CC
 AC_PROG_AWK
 AC_PROG_INSTALL
 
+AC_LANG_CPLUSPLUS
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
@@ -36,7 +38,7 @@ AC_HEADER_STDBOOL
 
 # Missing code check if the libipfix library is installed. 
 # This suppose that .a file is in /usr/local/lib.
-
+AC_LANG(C++)
 AC_CHECK_LIB([ipfix], 
              [ipfix_init], 
              [HAVE_IPFIX=1] [IPFIX_LIBS="-lipfix -lmisc"] [IPFIX_LDFLAGS="-L/user/local/lib"] [IPFIX_CPPFLAGS="-I/user/local/include"],  

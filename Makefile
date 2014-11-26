@@ -16,10 +16,10 @@
 
 
 
-pkgdatadir = $(datadir)/msnlp_ipfix
-pkgincludedir = $(includedir)/msnlp_ipfix
-pkglibdir = $(libdir)/msnlp_ipfix
-pkglibexecdir = $(libexecdir)/msnlp_ipfix
+pkgdatadir = $(datadir)/mnslp_ipfix
+pkgincludedir = $(includedir)/mnslp_ipfix
+pkglibdir = $(libdir)/mnslp_ipfix
+pkglibexecdir = $(libexecdir)/mnslp_ipfix
 am__cd = CDPATH="$${ZSH_VERSION+.}$(PATH_SEPARATOR)" && cd
 install_sh_DATA = $(install_sh) -c -m 644
 install_sh_PROGRAM = $(install_sh) -c
@@ -154,7 +154,7 @@ CXXCPP = g++ -E
 CXXDEPMODE = depmode=gcc3
 CXXFLAGS = -g -O2
 CYGPATH_W = echo
-DEFS = -DPACKAGE_NAME=\"msnlp_ipfix\" -DPACKAGE_TARNAME=\"msnlp_ipfix\" -DPACKAGE_VERSION=\"0.1\" -DPACKAGE_STRING=\"msnlp_ipfix\ 0.1\" -DPACKAGE_BUGREPORT=\"la.marentes455@uniandes.edu.co\" -DPACKAGE_URL=\"\" -DPACKAGE=\"msnlp_ipfix\" -DVERSION=\"0.1\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DHAVE_DLFCN_H=1 -DLT_OBJDIR=\".libs/\" -DHAVE__BOOL=1 -DHAVE_STDBOOL_H=1
+DEFS = -DPACKAGE_NAME=\"mnslp_ipfix\" -DPACKAGE_TARNAME=\"mnslp_ipfix\" -DPACKAGE_VERSION=\"0.1\" -DPACKAGE_STRING=\"mnslp_ipfix\ 0.1\" -DPACKAGE_BUGREPORT=\"la.marentes455@uniandes.edu.co\" -DPACKAGE_URL=\"\" -DPACKAGE=\"mnslp_ipfix\" -DVERSION=\"0.1\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DHAVE_DLFCN_H=1 -DLT_OBJDIR=\".libs/\" -DHAVE_STDBOOL_H=1
 DEPDIR = .deps
 DLLTOOL = false
 DSYMUTIL = 
@@ -192,11 +192,11 @@ OBJDUMP = objdump
 OBJEXT = o
 OTOOL = 
 OTOOL64 = 
-PACKAGE = msnlp_ipfix
+PACKAGE = mnslp_ipfix
 PACKAGE_BUGREPORT = la.marentes455@uniandes.edu.co
-PACKAGE_NAME = msnlp_ipfix
-PACKAGE_STRING = msnlp_ipfix 0.1
-PACKAGE_TARNAME = msnlp_ipfix
+PACKAGE_NAME = mnslp_ipfix
+PACKAGE_STRING = mnslp_ipfix 0.1
+PACKAGE_TARNAME = mnslp_ipfix
 PACKAGE_URL = 
 PACKAGE_VERSION = 0.1
 PATH_SEPARATOR = :
