@@ -1117,4 +1117,3 @@ int _mnslp_ipfix_export_array( ipfix_t          *ifh,
     return 0;
 }
 
-}

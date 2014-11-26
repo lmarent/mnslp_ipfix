@@ -2,7 +2,7 @@ AUTOMAKE_OPTIONS = foreign
 
 bin_PROGRAMS = msnlp_ipfix
 msnlp_ipfix_SOURCES = main.c \
-   		      mlog.c \
+   		      
 		      mnslp_libipfix.cpp
 
 msnlp_ipfix_LDADD = @IPFIX_LIBS@

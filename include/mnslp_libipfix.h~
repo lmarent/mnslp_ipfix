@@ -102,7 +102,7 @@ namespace mnslp_ipfix
 	   time_t             	g_tstart = 0;
 	   mnslp_iobuf_t      	g_iobuf[2], *g_buflist =NULL;
 	   ipfix_collector_t 	*g_collectors =NULL;
-	   mnslp_ipfix_node_t 	*g_ipfixlist =NULL;
+	   ipfix_node_t      	*g_ipfixlist =NULL;
 	   uint16_t           	g_lasttid;                 
 	   ipfix_datarecord_t 	g_data = { NULL, NULL, 0 }; 
 	   ipfix_field_t      	*g_ipfix_fields;
