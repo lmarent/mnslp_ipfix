@@ -37,6 +37,11 @@
 #ifndef IPFIX_DEF_H
 #define IPFIX_DEF_H
 
+#include <cstddef>
+#include <stdlib.h>
+#include <string>
+
+
 #define IPFIX_CODING_INT    1
 #define IPFIX_CODING_UINT   2
 #define IPFIX_CODING_BYTES  3
@@ -47,30 +52,21 @@
 
 #define REV_PEN 29305 /* reverse elements private enterprise number, see RFC5103 */
 
-typedef int (*ipfix_encode_func) (void *, void*, size_t);
-typedef int (*ipfix_decode_func) (void *, void*, size_t);
-typedef int (*ipfix_snprint_func) (char *, size_t, void*, size_t);
+typedef int (*ipfix_encode_func) (void *, void*, std::size_t);
+typedef int (*ipfix_decode_func) (void *, void*, std::size_t);
+typedef int (*ipfix_snprint_func) (char *, size_t, void*, std::size_t);
 
 typedef struct
 {
-    int         eno;                /* enterprise number or 0 */
-    int         ftype;              /* field type */
-    ssize_t     length;             /* field length */
-    int         coding;
-    char        *name;
-    char        *documentation;
+    int         	eno;                /* enterprise number or 0 */
+    int         	ftype;              /* field type */
+    ssize_t     	length;             /* field length */
+    int        	 	coding;
+    std::string     name;
+    std::string     documentation;
 
 } ipfix_field_type_t;
 
-typedef struct ipfix_field
-{
-    struct ipfix_field   *next;
-    ipfix_field_type_t   *ft;
-    ipfix_encode_func    encode;
-    ipfix_decode_func    decode;
-    ipfix_snprint_func   snprint;
-
-} ipfix_field_t;
 
 #define IPFIX_FT_OCTETDELTACOUNT              1
 #define IPFIX_FT_PACKETDELTACOUNT             2

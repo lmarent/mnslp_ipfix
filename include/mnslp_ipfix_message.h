@@ -1,10 +1,10 @@
 /// ----------------------------------------*- mode: C; -*--
-/// @file ipfix.h
+/// @file mnslp_ipfix_message.h
 /// Tools for processing IPFIX messages in NSIS metering.
-/// Export declarations of ipfix messages.
+/// Export declarations of mnslp ipfix messages.
 /// ----------------------------------------------------------
-/// $Id: ipfix.h 2558 2014-11-26 14:11:00 amarentes $
-/// $HeadURL: https://./include/ipfix.h $
+/// $Id: mnslp_ipfix_message.h 2558 2014-11-26 14:11:00 amarentes $
+/// $HeadURL: https://./include/mnslp_ipfix_message.h $
 // ===========================================================
 //                      
 // Copyright (C) 2012-2014, all rights reserved by
@@ -34,14 +34,16 @@
 **
 ** Copyright System and Computing Engineering, Universidad de los Andes
 **
-** $Id: ipfix.h 152 2014-11-26 14:52:00 $
+** $Id: mnslp_ipfix_message.h 152 2014-11-26 14:52:00 $
 **
 */
-#ifndef IPFIX_H
-#define IPFIX_H
+#ifndef MNSLP_IPFIX_MESSAGE_H
+#define MNSLP_IPFIX_MESSAGE_H
 
 #include <inttypes.h>
 #include "ipfix_def.h"
+#include "mnslp_ipfix_fields.h"
+#include "mnslp_ipfix_templates.h"
 
 #ifndef ENOTSUP
 #define ENOTSUP EOPNOTSUPP
@@ -118,6 +120,8 @@ typedef struct {
 #define IPFIX_DFLT_TEMPLRESENDINT   30
 #define IPFIX_DFLT_TEMPLLIFETIME    300
 
+#define IPFIX_DEFAULT_BUFLEN 		1400
+
 /** bearer protocol
  */
 typedef enum {
@@ -126,13 +130,6 @@ typedef enum {
     IPFIX_PROTO_UDP  = 17      /* IPPROTO_UDP  */    
 } ipfix_proto_t;
 
-typedef struct
-{
-    uint16_t            flength;           /* less or eq. elem->flength  */
-    int                 unknown_f;         /* set if unknown elem */
-    int                 relay_f;           /* just relay no, encoding (exp.) */
-    ipfix_field_t       *elem;
-} ipfix_template_field_t;
 
 typedef struct ipfix_datarecord
 {
@@ -141,30 +138,12 @@ typedef struct ipfix_datarecord
     uint16_t          maxfields;         /* sizeof arrays */
 } ipfix_datarecord_t;
 
-typedef enum {
-    DATA_TEMPLATE, OPTION_TEMPLATE
-} ipfix_templ_type_t;
-
-typedef struct ipfix_template
-{
-    struct ipfix_template   *next; /* for internal use          */
-    ipfix_templ_type_t      type;  /* data or option template   */
-    time_t                  tsend; /* time of last transmission */
-
-    uint16_t                tid;
-    int                     ndatafields;
-    int                     nscopefields;
-    int                     nfields;        /* = ndata + nscope */
-    ipfix_template_field_t  *fields;
-    int                     maxfields;         /* sizeof fields */
-} ipfix_template_t;
 
 typedef struct
 {
-    int              sourceid;    /* domain id of the exporting process */
-    int              version;     /* ipfix version to export */
-    void             *collectors; /* list of collectors */
-    ipfix_template_t *templates;  /* list of templates  */
+    int              		 sourceid;    /* domain id of the exporting process */
+	int              		 version;     /* ipfix version to export */
+    mnslp_template_container templates;  /* list of templates  */
 
     char        *buffer;          /* output buffer */
     int         nrecords;         /* no. of records in buffer */
@@ -184,54 +163,70 @@ typedef struct {
     uint16_t  length;		/* length of this element in bytes - use 65535 for varlen elements */
 } export_fields_t;
 
+typedef struct ipfixiobuf
+{
+    struct ipfixiobuf  *next;
+    size_t             buflen;
+    char               buffer[IPFIX_DEFAULT_BUFLEN+IPFIX_HDR_BYTES_NF9]; /*!!*/
+} iobuf_t;
+
+typedef struct ipfix_message
+{
+    char        buffer[IPFIX_DEFAULT_BUFLEN];   /* message buffer */
+    int         nrecords;                       /* no. of records in buffer */
+    size_t      offset;                         /* output buffer fill level */
+} ipfix_message_t;
+
 
 class mnslp_ipfix_message
 {
 	
    private:
-   
-   
+	   ipfix_t * 						message;
+	   msnlp_ipfix_field_container 		g_ipfix_fields;
+	   time_t             				g_tstart;
+	   iobuf_t            				g_iobuf[2], *g_buflist;
+	   uint16_t           				g_lasttid;                  /* change this! */
+	   ipfix_datarecord_t 				g_data; 					  /* ipfix_export */
+
    public:	
    
-	   int  ipfix_open( ipfix_t **ifh, int sourceid, int ipfix_version );
-
-	   int  ipfix_new_data_template( ipfix_t *ifh,
-                              ipfix_template_t **templ, int nfields );
+	   int  new_data_template( mnslp_ipfix_template **templ, int nfields );
                               
-	   int  ipfix_new_option_template( ipfix_t *ifh,
-                                ipfix_template_t **templ, int nfields );
+	   int  new_option_template( mnslp_ipfix_template **templ, int nfields );
                                 
-	   int  ipfix_add_field( ipfix_t *ifh, ipfix_template_t *templ,
-                      uint32_t enterprise_number,
-                      uint16_t type, uint16_t length );
+	   int  add_field( mnslp_ipfix_template *templ,
+                       uint32_t enterprise_number,
+                       uint16_t type, uint16_t length );
                       
-	   int  ipfix_add_scope_field( ipfix_t *ifh, ipfix_template_t *templ,
-                            uint32_t enterprise_number,
-                            uint16_t type, uint16_t length );
+	   int  add_scope_field( mnslp_ipfix_template *templ,
+                             uint32_t enterprise_number,
+                             uint16_t type, uint16_t length );
                             
-	   void ipfix_delete_template( ipfix_t *ifh, ipfix_template_t *templ );
+	   void delete_template( mnslp_ipfix_template *templ );
 	   
-	   int  ipfix_make_template( ipfix_t *handle, ipfix_template_t **templ,
-                         export_fields_t *fields, int nfields );
+	   int  make_template( mnslp_ipfix_template **templ,
+						   export_fields_t *fields, 
+						   int nfields );
                          
-	   int  ipfix_export( ipfix_t *ifh, ipfix_template_t *templ, ... );
+	   int  export( mnslp_ipfix_template *templ, ... );
 	   
 	   
-	   int  ipfix_export_array( ipfix_t *ifh, ipfix_template_t *templ,
-                         int nfields, void **fields, uint16_t *lengths );
+	   int  export_array( mnslp_ipfix_template *templ, 
+			   			  int nfields, 
+					   	  void **fields, 
+					      uint16_t *lengths );
                          
-	   int  ipfix_export_flush( ipfix_t *ifh );
+	   int  export_flush( );
 	   
-	   void ipfix_close( ipfix_t *ifh );
-
-	   mnslp_ipfix_message();
+	   mnslp_ipfix_message( int sourceid, int ipfix_version);
 	   
 	   ~mnslp_ipfix_message();
 
-}
+};
 
 
 }
 
-#endif
+#endif // MNSLP_IPFIX_MESSAGE_H
 

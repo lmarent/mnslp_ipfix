@@ -27,10 +27,6 @@
 //
 // ===========================================================
 
-#ifdef __cplusplus 
-extern "C" {
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -48,7 +44,6 @@ extern "C" {
 #include <fcntl.h>
 #include <netdb.h>
 
-#include "misc.h"
 #include "ipfix.h"
 #include "ipfix_fields.h"
 #include "ipfix_reverse_fields.h"
@@ -56,9 +51,6 @@ extern "C" {
 #include "ipfix_ssl.h"
 #endif
 
-#ifdef __cplusplus 
-}
-#endif
 
 #include "mnslp_libipfix.h"
 
@@ -91,7 +83,7 @@ void mnslp_ipfix_mes::allocate_additional_memory(mnslp_ipfix_message_t *mes, siz
  * Purpose   : write 'n' bytes to message
  * Returns   : number of written bytes.
  */
-int mnslp_ipfix_mes::_mnslp_do_writen( mnslp_ipfix_message_t *mes, 
+int mnslp_ipfix_message::_mnslp_do_writen( mnslp_ipfix_message_t *mes, 
 							 char *ptr, 
 							 int nbytes )
 {
@@ -115,7 +107,7 @@ int mnslp_ipfix_mes::_mnslp_do_writen( mnslp_ipfix_message_t *mes,
  * parameters:
  * return:      0/-1
  */
-int mnslp_ipfix_mes::mnslp_ipfix_parse_hdr( mnslp_ipfix_message_t *mes, ipfix_hdr_t *hdr )
+int mnslp_ipfix_message::mnslp_ipfix_parse_hdr( mnslp_ipfix_message_t *mes, ipfix_hdr_t *hdr )
 {
     uint16_t version = READ16(mes->buffer);
 
@@ -171,7 +163,7 @@ int mnslp_ipfix_mes::mnslp_ipfix_parse_hdr( mnslp_ipfix_message_t *mes, ipfix_hd
 
 }
 
-ipfix_template_t * mnslp_ipfix_mes::mnslp_get_template(ipfix_t 			   *ifh, 
+ipfix_template_t * mnslp_ipfix_message::mnslp_get_template(ipfix_t 			   *ifh, 
 									  uint16_t            tid_param)
 {
 	ipfix_template_t    *res = NULL;
@@ -193,7 +185,7 @@ ipfix_template_t * mnslp_ipfix_mes::mnslp_get_template(ipfix_t 			   *ifh,
  * func:        create or update template inside ifh. 
  * return:      0/-1
  */
-int mnslp_ipfix_mes::mnslp_ipfix_decode_trecord( ipfix_t *ifh,
+int mnslp_ipfix_message::mnslp_ipfix_decode_trecord( ipfix_t *ifh,
 								int            setid,
 								const char     *buf,
 								size_t         len,
@@ -359,7 +351,7 @@ int mnslp_ipfix_mes::mnslp_ipfix_decode_trecord( ipfix_t *ifh,
  * return:      0=ok, -1=error
  * todo:        parse message before calling this func
  */
-int mnslp_ipfix_mes::mnslp_ipfix_decode_datarecord( ipfix_template_t   *t,
+int mnslp_ipfix_message::mnslp_ipfix_decode_datarecord( ipfix_template_t   *t,
 								   char      		  *buf, 
 								   int                buflen,
 								   int                *nread,
@@ -427,7 +419,7 @@ int mnslp_ipfix_mes::mnslp_ipfix_decode_datarecord( ipfix_template_t   *t,
 
 
 
-int mnslp_ipfix_mes::_mnslp_ipfix_send_msg( ipfix_t *ifh, 
+int mnslp_ipfix_message::_mnslp_ipfix_send_msg( ipfix_t *ifh, 
 						   mnslp_ipfix_message_t *mes, 
 						   mnslp_iobuf_t *buf )
 {
@@ -444,7 +436,7 @@ int mnslp_ipfix_mes::_mnslp_ipfix_send_msg( ipfix_t *ifh,
 }
 
 
-void mnslp_ipfix_mes::_finish_cs( ipfix_t *ifh )
+void mnslp_ipfix_message::_finish_cs( ipfix_t *ifh )
 {
     size_t   buflen;
     uint8_t  *buf;
@@ -462,7 +454,7 @@ void mnslp_ipfix_mes::_finish_cs( ipfix_t *ifh )
 
 
 
-int mnslp_ipfix_mes::mnslp_ipfix_export_array( ipfix_t          *ifh,
+int mnslp_ipfix_message::mnslp_ipfix_export_array( ipfix_t          *ifh,
 							  ipfix_template_t *templ,
 							  mnslp_ipfix_message_t *mes, 
 							  int              nfields,
@@ -489,7 +481,7 @@ int mnslp_ipfix_mes::mnslp_ipfix_export_array( ipfix_t          *ifh,
  * parameters:
  * return:      0/-1
  */
-int mnslp_ipfix_mes::_mnslp_ipfix_write_template( ipfix_t           *ifh,
+int mnslp_ipfix_message::_mnslp_ipfix_write_template( ipfix_t           *ifh,
 								 mnslp_ipfix_message_t *mes,
 								 ipfix_template_t  *templ )
 {
@@ -603,7 +595,7 @@ int mnslp_ipfix_mes::_mnslp_ipfix_write_template( ipfix_t           *ifh,
 
 
 
-mnslp_iobuf_t * mnslp_ipfix_mes::_mnslp_ipfix_getbuf ( void )
+mnslp_iobuf_t * mnslp_ipfix_message::_mnslp_ipfix_getbuf ( void )
 {
     mnslp_iobuf_t *b = g_buflist;
 
@@ -615,7 +607,7 @@ mnslp_iobuf_t * mnslp_ipfix_mes::_mnslp_ipfix_getbuf ( void )
     return b;
 }
 
-void mnslp_ipfix_mes::_mnslp_ipfix_freebuf( mnslp_iobuf_t *b )
+void mnslp_ipfix_message::_mnslp_ipfix_freebuf( mnslp_iobuf_t *b )
 {
     if ( b ) {
         b->next = g_buflist;
@@ -629,7 +621,7 @@ void mnslp_ipfix_mes::_mnslp_ipfix_freebuf( mnslp_iobuf_t *b )
  * parameters:
  * return:      0/-1
  */
-int mnslp_ipfix_mes::_mnslp_ipfix_write_hdr( ipfix_t *ifh, mnslp_iobuf_t *buf )
+int mnslp_ipfix_message::_mnslp_ipfix_write_hdr( ipfix_t *ifh, mnslp_iobuf_t *buf )
 {
     time_t      now = time(NULL);
 
@@ -664,7 +656,7 @@ int mnslp_ipfix_mes::_mnslp_ipfix_write_hdr( ipfix_t *ifh, mnslp_iobuf_t *buf )
 /* name:        _mnslp_ipfix_export_flush()
  * parameters:
  */
-int mnslp_ipfix_mes::_mnslp_ipfix_export_flush( ipfix_t *ifh, 
+int mnslp_ipfix_message::_mnslp_ipfix_export_flush( ipfix_t *ifh, 
 							   mnslp_ipfix_message_t *mes )
 {
     mnslp_iobuf_t     *buf;
@@ -705,7 +697,7 @@ int mnslp_ipfix_mes::_mnslp_ipfix_export_flush( ipfix_t *ifh,
     return ret;
 }
 
-int mnslp_ipfix_mes::_mnslp_ipfix_export_array( ipfix_t          *ifh,
+int mnslp_ipfix_message::_mnslp_ipfix_export_array( ipfix_t          *ifh,
 							   ipfix_template_t *templ,
 							   mnslp_ipfix_message_t *mes,
 							   int              nfields,
@@ -842,7 +834,7 @@ int mnslp_ipfix_mes::_mnslp_ipfix_export_array( ipfix_t          *ifh,
 ///***************************  Public Methods  ****************************** 
 ///****************************************************************************
 
-int mnslp_ipfix_mes::mnslp_ipfix_export( ipfix_t *ifh, 
+int mnslp_ipfix_message::mnslp_ipfix_export( ipfix_t *ifh, 
 					    mnslp_ipfix_message_t *mes, 
 					    ipfix_template_t *templ, char *fmt, ... )
 {
@@ -922,7 +914,7 @@ int mnslp_ipfix_mes::mnslp_ipfix_export( ipfix_t *ifh,
 									   g_mnslp_data.addrs, g_mnslp_data.lens );
 }
 
-int mnslp_ipfix_mes::mnslp_ipfix_import( ipfix_t *ifh, 
+int mnslp_ipfix_message::mnslp_ipfix_import( ipfix_t *ifh, 
 						mnslp_ipfix_message_t *mes,
 						ipfix_datarecord_t  data )
 {
@@ -1094,7 +1086,7 @@ int mnslp_ipfix_mes::mnslp_ipfix_import( ipfix_t *ifh,
  * parameters:
  * return:      0 = ok, -1 = error
  */
-int mnslp_ipfix_mes::mnslp_message_create( mnslp_ipfix_message_t ** ipfix_message  )
+int mnslp_ipfix_message::mnslp_message_create( mnslp_ipfix_message_t ** ipfix_message  )
 {
     mnslp_ipfix_message_t       *i;
 
@@ -1112,7 +1104,7 @@ int mnslp_ipfix_mes::mnslp_message_create( mnslp_ipfix_message_t ** ipfix_messag
     return 0;
 }
 
-void mnslp_ipfix_mes::ipfix_message_release( mnslp_ipfix_message_t * ipfix_message )
+void mnslp_ipfix_message::ipfix_message_release( mnslp_ipfix_message_t * ipfix_message )
 {
 	if (ipfix_message)
 	{

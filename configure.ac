@@ -39,11 +39,11 @@ AC_HEADER_STDBOOL
 # Missing code check if the libipfix library is installed. 
 # This suppose that .a file is in /usr/local/lib.
 AC_LANG(C++)
-AC_CHECK_LIB([ipfix], 
-             [ipfix_init], 
-             [HAVE_IPFIX=1] [IPFIX_LIBS="-lipfix -lmisc"] [IPFIX_LDFLAGS="-L/user/local/lib"] [IPFIX_CPPFLAGS="-I/user/local/include"],  
-             AC_MSG_WARN([libipfix is not installed.]),
-             -lmisc)
+#AC_CHECK_LIB([ipfix], 
+#             [ipfix_init], 
+#             [HAVE_IPFIX=1] [IPFIX_LIBS="-lipfix -lmisc"] [IPFIX_LDFLAGS="-L/user/local/lib"] [IPFIX_CPPFLAGS="-I/user/local/include"],  
+#             AC_MSG_WARN([libipfix is not installed.]),
+#             -lmisc)
 
 AC_SUBST(IPFIX_CPPFLAGS)
 AC_SUBST(IPFIX_LDFLAGS)

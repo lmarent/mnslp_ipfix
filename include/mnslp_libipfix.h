@@ -66,7 +66,7 @@ void testEndianness() {
 namespace mnslp_ipfix
 {
 
-    typedef struct mnslp_ipfix_message
+    typedef struct mnslp_ipfix_mes
     {
     	char        *buffer;   						/* message buffer */
     	int         nrecords;                       /* no. of records in buffer */
@@ -78,15 +78,8 @@ namespace mnslp_ipfix
     {
     	struct mnslp_ipfixiobuf  *next;
     	size_t       	      buflen;
-    	char         	      buffer[IPFIX_DEFAULT_BUFLEN+IPFIX_HDR_BYTES_NF9]; /*!!*/
+    	char         	      buffer[MNSLP_IPFIX_DEFAULT_BUFLEN + IPFIX_HDR_BYTES_NF9]; /*!!*/
     } mnslp_iobuf_t;
-
-    typedef struct mnslp_ipfix_message
-    {
-    	char        buffer[IPFIX_DEFAULT_BUFLEN];   /* message buffer */
-    	int         nrecords;                       /* no. of records in buffer */
-    	size_t      offset;                         /* output buffer fill level */
-    } mnslp_ipfix_message_t;
 
     typedef struct mnslp_ipfix_node
     {
@@ -95,18 +88,17 @@ namespace mnslp_ipfix
     } mnslp_ipfix_node_t;
 
 
-    class mnslp_ipfix_mes
+    class mnslp_ipfix_message
     {
 
 	private:
 	   
       // attributes
-       time_t             	g_tstart = 0;
-	   mnslp_iobuf_t      	g_iobuf[2], *g_buflist=NULL;
-	   ipfix_collector_t 	*g_collectors =NULL;
-	   mnslp_ipfix_node_t 	*g_ipfixlist =NULL;
+       time_t             	g_tstart0;
+	   mnslp_iobuf_t      	g_iobuf[2], *g_buflist;
+	   mnslp_ipfix_node_t 	*g_ipfixlist;
 	   uint16_t           	g_lasttid;                 
-	   ipfix_datarecord_t 	g_data = { NULL, NULL, 0 }; 
+	   ipfix_datarecord_t 	g_data; 
 	   ipfix_field_t      	*g_ipfix_fields;
 	  
 	  // private methods
@@ -166,6 +158,10 @@ namespace mnslp_ipfix
 	  							   uint16_t         *lengths );
 
     public:
+
+       mnslp_ipfix_message();
+       
+       ~mnslp_ipfix_message();
 
 	   int mnslp_ipfix_export( ipfix_t *ifh, 
 	   			   mnslp_ipfix_message_t *mes, 
