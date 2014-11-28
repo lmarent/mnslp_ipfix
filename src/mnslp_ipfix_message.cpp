@@ -51,6 +51,7 @@
 
 
 #include "mnslp_ipfix_message.h"
+#include "mnslp_ipfix_exception.h"
 
 
 namespace mnslp_ipfix
@@ -75,36 +76,13 @@ void testEndianness() {
         { uint32_t _t=htonl((val)); memcpy((b),&_t,4); (l)+=4; }
 
 
-
-mnslp_ipfix_message::~mnslp_ipfix_message()
-{
-	if (message != NULL)
-		delete message;
-		
-	if (g_buflist != NULL)
-		delete g_buflist;
-		
-	if (g_data.addrs != NULL)
-		delete g_data.lens;
-	
-	if (g_data.addrs != NULL)
-		delete g_data.lens;	
-}
-
-int mnslp_ipfix_message::mnslp_ipfix_message( int sourceid, int ipfix_version ):
-		message(NULL), g_tstart(0), g_buflist(NULL), g_ipfixlist(NULL) 
+mnslp_ipfix_message::mnslp_ipfix_message( int sourceid, int ipfix_version ):
+		message(NULL), g_tstart(0), g_buflist(NULL)
 {
 
     ipfix_t       *i;
 
 	g_data = { NULL, NULL, 0 };
-    if ( ! g_tstart )          /* hack: change this! */
-    {
-        /** module initialisation
-         */
-        if ( ipfix_init() < 0 )
-            return -1;
-    }
 
     switch( ipfix_version ) {
       case IPFIX_VERSION_NF9:
@@ -113,7 +91,7 @@ int mnslp_ipfix_message::mnslp_ipfix_message( int sourceid, int ipfix_version ):
           break;
       default:
           errno = ENOTSUP;
-          return -1;
+          throw mnslp_ipfix_bad_argument("Invalid IP Fix Version");
     }
 
 	try
@@ -125,7 +103,7 @@ int mnslp_ipfix_message::mnslp_ipfix_message( int sourceid, int ipfix_version ):
 	{
 		if ( i != NULL )
 			delete( i );
-        return -1;
+        throw std::bad_alloc(exc);
     }
 
     i->sourceid  = sourceid;
@@ -134,11 +112,10 @@ int mnslp_ipfix_message::mnslp_ipfix_message( int sourceid, int ipfix_version ):
     i->seqno     = 0;
 
     message = i;
-    return 0;
 }
 
 
-void mnslp_ipfix_message::~mnslp_ipfix_message (  )
+mnslp_ipfix_message::~mnslp_ipfix_message( void )
 {
 
     close( );
@@ -153,21 +130,6 @@ void mnslp_ipfix_message::~mnslp_ipfix_message (  )
 }
 
 
-void free_field_types( ipfix_field_t **flist )
-{
-    ipfix_field_t *tmp, *n = *flist;
-
-    while( n ) {
-        tmp = n->next;
-        delete( n );
-        n = tmp;
-    }
-
-    *flist = NULL;
-}
-
-
-
 /*
  * name:        ipfix_add_vendor_information_elements()
  * parameters:  > fields - array of fields of size nfields+1
@@ -175,14 +137,12 @@ void free_field_types( ipfix_field_t **flist )
  * description: add information elements to global list of field types
  * remarks:
  */
-int add_vendor_information_elements( ipfix_field_type_t *fields )
+int mnslp_ipfix_message::add_vendor_information_elements( ipfix_field_type_t *fields )
 {
     ipfix_field_type_t *ft;
-    ipfix_field_t      *n;
 
     if ( ! g_tstart ) {          /* hack: change this! */
-        if ( ipfix_init() < 0 )
-            return -1;
+        init();
     }
 
     /** add to list of field types
@@ -200,20 +160,16 @@ int add_vendor_information_elements( ipfix_field_type_t *fields )
     return 0;
 }
 
-/*
- * name:        ipfix_init()
+/**
+ * name:        init()
  * parameters:
  * remarks:     init module, read field type info.
  */
-int mnslp_ipfix_message::init( void )
+void mnslp_ipfix_message::init( void )
 {
     /* check and store in global flag, 
      * whether we are on a Small or BigEndian machine */
     testEndianness(); 
-
-    if ( g_tstart ) {
-        ipfix_cleanup();
-    }
 
     g_tstart = time(NULL);
     signal( SIGPIPE, SIG_IGN );
@@ -235,7 +191,6 @@ int mnslp_ipfix_message::init( void )
 
     g_ipfix_fields.initialize_reverse();
 
-    return 0;
 }
 
 
@@ -244,13 +199,10 @@ int mnslp_ipfix_message::init( void )
  * parameters:
  * return:      0 = ok, -1 = error
  */
-int new_data_template( mnslp_ipfix_template **templ, int nfields )
+void mnslp_ipfix_message::new_data_template( mnslp_ipfix_template **templ, int nfields )
 {
-    if ( new_template( templ, nfields ) <0 )
-        return -1;
-
+    new_template( templ, nfields );
     (*templ)->type = DATA_TEMPLATE;
-    return 0;
 }
 
 /*
@@ -258,7 +210,7 @@ int new_data_template( mnslp_ipfix_template **templ, int nfields )
  * parameters:
  * return:      0 = ok, -1 = error
  */
-int new_option_template( ipfix_template_t **templ,
+int mnslp_ipfix_message::new_option_template( ipfix_template_t **templ,
                          int              nfields )
 {
     if ( new_template( templ, nfields ) <0 )
@@ -274,14 +226,19 @@ int new_option_template( ipfix_template_t **templ,
  * parameters:
  * return:      0 = ok, -1 = error
  */
-int new_template( mnslp_ipfix_template **templ, int nfields )
+void mnslp_ipfix_message::new_template( mnslp_ipfix_template **templ, int nfields )
 {
     mnslp_ipfix_template  *t;
 
-    if ( !message || !templ || (nfields<1) ) {
+    if ( !message || !templ  ) {
         errno = EINVAL;
-        return -1;
+        throw mnslp_ipfix_bad_argument("Template parameter invalid");
     }
+    
+    if ( (nfields<1))
+    {
+		throw mnslp_ipfix_bad_argument("Invalid number of fields");
+	}
 
     /** alloc mem
      */
@@ -300,14 +257,13 @@ int new_template( mnslp_ipfix_template **templ, int nfields )
 		/** add template to template container
 		 */
 		(ifh->templates).add_template(*t);
-		return 0;
 	
 	}
-	catch
+	catch (std::bad_alloc& exc)
 	{
 		if (t != NULL)
 			delete t;
-		return -1;
+		throw std::bad_alloc(exc);
 	}
 
 }
@@ -318,7 +274,7 @@ int new_template( mnslp_ipfix_template **templ, int nfields )
  * parameters:
  * return:      0 = ok, -1 = error
  */
-int add_field( mnslp_ipfix_template *templ,
+int mnslp_ipfix_message::add_field( mnslp_ipfix_template *templ,
                uint32_t         eno,
                uint16_t         type,
                uint16_t         length )
@@ -348,7 +304,7 @@ int add_field( mnslp_ipfix_template *templ,
  * parameters:
  * return:      0 = ok, -1 = error
  */
-int add_scope_field( mnslp_ipfix_template *templ,
+int mnslp_ipfix_message::add_scope_field( mnslp_ipfix_template *templ,
                      uint32_t         eno,
                      uint16_t         type,
                      uint16_t         length )
@@ -378,7 +334,7 @@ int add_scope_field( mnslp_ipfix_template *templ,
  * parameters:
  * return:
  */
-void delete_template( mnslp_ipfix_template *templ )
+void mnslp_ipfix_message::delete_template( mnslp_ipfix_template *templ )
 {
 
     if ( ! templ )
@@ -397,7 +353,7 @@ void delete_template( mnslp_ipfix_template *templ )
  * parameters:
  * return:      generates a new template and stores a pointer to it into the templ parameter
  */
-int  make_template( ipfix_template_t **templ,
+int mnslp_ipfix_message::make_template( ipfix_template_t **templ,
 				    export_fields_t *fields, 
 					int nfields )
 {
@@ -423,7 +379,7 @@ int  make_template( ipfix_template_t **templ,
 
 }
 
-void finish_cs( void )
+void mnslp_ipfix_message::finish_cs( void )
 {
     size_t   buflen;
     uint8_t  *buf;
@@ -444,7 +400,7 @@ void finish_cs( void )
  * parameters:
  * return:      0/-1
  */
-int _write_hdr( iobuf_t *buf )
+int mnslp_ipfix_message::_write_hdr( iobuf_t *buf )
 {
     time_t      now = time(NULL);
 
@@ -473,7 +429,7 @@ int _write_hdr( iobuf_t *buf )
     return 0;
 }
 
-void _freebuf( iobuf_t *b )
+void mnslp_ipfix_message::_freebuf( iobuf_t *b )
 {
     if ( b ) {
         b->next = g_buflist;
@@ -481,7 +437,7 @@ void _freebuf( iobuf_t *b )
     }
 }
 
-iobuf_t *_getbuf ( void )
+iobuf_t *mnslp_ipfix_message::_getbuf ( void )
 {
     iobuf_t *b = g_buflist;
 
@@ -494,12 +450,11 @@ iobuf_t *_getbuf ( void )
 }
 
 
-
-/* name:        _export_flush()
+/* name:        _output_flush()
  * parameters:
  * remarks:    
  */
-int _export_flush( void )
+int mnslp_ipfix_message::_output_flush( void )
 {
     iobuf_t           *buf;
     int               ret;
@@ -544,12 +499,11 @@ int _export_flush( void )
  * parameters:
  * return:      0 = ok, -1 = error
  */
-void close( )
+void mnslp_ipfix_message::close( void )
 {
     if ( message )
     {
-
-        _export_flush( );
+        _output_flush( );
 		delete (message->buffer);
         delete(message)
     }
@@ -562,7 +516,7 @@ void close( )
  * parameters:
  * return:      0/-1
  */
-int _write_template( ipfix_template_t  *templ )
+int mnslp_ipfix_message::_write_template( ipfix_template_t  *templ )
 {
     size_t            buflen, tsize=0, ssize=0, osize=0;
     char              *buf;
@@ -594,7 +548,7 @@ int _write_template( ipfix_template_t  *templ )
     /* check space */
     if ( tsize + message->offset > IPFIX_DEFAULT_BUFLEN ) 
     {
-         if ( _export_flush(  ) < 0 )
+         if ( _output_flush(  ) < 0 )
              return -1;
          if ( tsize + message->offset > IPFIX_DEFAULT_BUFLEN )
              return -1;
@@ -681,10 +635,7 @@ int _write_template( ipfix_template_t  *templ )
     return 0;
 }
 
-
-
-
-int _export_array( ipfix_template_t *templ,
+int mnslp_ipfix_message::_output_array( ipfix_template_t *templ,
                          int              nfields,
                          void             **fields,
                          uint16_t         *lengths )
@@ -741,7 +692,7 @@ int _export_array( ipfix_template_t *templ,
             finish_cs( );
         newset_f = 1;
 
-        if ( _export_flush( ) <0 )
+        if ( _output_flush( ) <0 )
             return -1;
     }
 
@@ -794,19 +745,19 @@ int _export_array( ipfix_template_t *templ,
     return 0;
 }
 
-int export_array( ipfix_template_t *templ,
+int mnslp_ipfix_message::output_array( ipfix_template_t *templ,
                   int              nfields,
                   void             **fields,
                   uint16_t         *lengths )
 {
     int ret;
-    ret = _export_array( templ, nfields, fields, lengths );
+    ret = _output_array( templ, nfields, fields, lengths );
     return ret;
 }
 
 
 
-int export( ipfix_template_t *templ, ... )
+int mnslp_ipfix_message::output( ipfix_template_t *templ, ... )
 {
     int       i;
     va_list   args;
@@ -845,14 +796,14 @@ int export( ipfix_template_t *templ, ... )
     }
     va_end(args);
 
-    return export_array( templ, templ->get_numfields(), g_data.addrs, g_data.lens );
+    return output_array( templ, templ->get_numfields(), g_data.addrs, g_data.lens );
 }
 
 
-int export_flush(  )
+int mnslp_ipfix_message::output_flush(  )
 {
     int ret;
-    ret = _export_flush( );
+    ret = _output_flush( );
     return ret;
 }
 

@@ -95,9 +95,6 @@ private:
     void AddFieldType(int _eno, int _ftype, ssize_t _length, 
 					  int _coding, const std::string _name, const std::string _documentation );
 		
-	void AddFieldType(ipfix_field_type_t &param);
-
-
 public:
     msnlp_ipfix_field_container();
     
@@ -108,6 +105,8 @@ public:
     void initialize_reverse(void);
     
     mnslp_ipfix_field * get_field( int eno, int type );
+    
+    void AddFieldType(ipfix_field_type_t &param);
 
     
 };

@@ -189,9 +189,19 @@ class mnslp_ipfix_message
 	   uint16_t           				g_lasttid;                  /* change this! */
 	   ipfix_datarecord_t 				g_data; 					  /* ipfix_export */
 
+   protected:
+	
+	   void init( void );
+	   
+	   void close( void );
+	   
+	   int add_vendor_information_elements( ipfix_field_type_t *fields );
+	   
+	   void new_template( mnslp_ipfix_template **templ, int nfields );
+
    public:	
    
-	   int  new_data_template( mnslp_ipfix_template **templ, int nfields );
+	   void new_data_template( mnslp_ipfix_template **templ, int nfields );
                               
 	   int  new_option_template( mnslp_ipfix_template **templ, int nfields );
                                 
@@ -208,20 +218,19 @@ class mnslp_ipfix_message
 	   int  make_template( mnslp_ipfix_template **templ,
 						   export_fields_t *fields, 
 						   int nfields );
-                         
-	   int  export( mnslp_ipfix_template *templ, ... );
+	   int  output( mnslp_ipfix_template *templ, ... );
 	   
 	   
-	   int  export_array( mnslp_ipfix_template *templ, 
+	   int  output_array( mnslp_ipfix_template *templ, 
 			   			  int nfields, 
 					   	  void **fields, 
 					      uint16_t *lengths );
                          
-	   int  export_flush( );
+	   int  output_flush( void );
 	   
 	   mnslp_ipfix_message( int sourceid, int ipfix_version);
 	   
-	   ~mnslp_ipfix_message();
+	   ~mnslp_ipfix_message(void);
 
 };
 
