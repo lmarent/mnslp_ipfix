@@ -41,6 +41,9 @@
 #define MNSLP_IPFIX_MESSAGE_H
 
 #include <inttypes.h>
+#include <map>
+
+
 #include "ipfix_def.h"
 #include "mnslp_ipfix_fields.h"
 #include "mnslp_ipfix_templates.h"
@@ -131,31 +134,60 @@ typedef enum {
 } ipfix_proto_t;
 
 
-typedef struct ipfix_datarecord
+class data_record
 {
-    void              **addrs;
-    uint16_t          *lens;
-    uint16_t          maxfields;         /* sizeof arrays */
-} ipfix_datarecord_t;
+
+private:
+    std::map<mnslp_ipfix_field_key, void *> field_data;    	/* Data values for every field */
+    std::map<mnslp_ipfix_field_key, uint16_t > field_length;	/* Variable length definition */
+
+public:
+    
+    data_record();
+    
+    ~data_record();
+    
+    void insert_field(int, int, void * value);
+        
+    void insert_field(mnslp_ipfix_field_key &param, void * value);
+    
+    void insert_field_lenght(int eno, int ftype, uint16_t lenght);
+    
+    void insert_field_lenght(mnslp_ipfix_field_key &param, uint16_t lenght);
+    
+    int get_num_fields();
+    
+    void * get_field(mnslp_ipfix_field_key &param);
+    
+    uint16_t get_lenght(mnslp_ipfix_field_key &param);
+    
+    void clear();
+    
+};
 
 
-typedef struct
+class ipfix_t
 {
-    int              		 sourceid;    /* domain id of the exporting process */
-	int              		 version;     /* ipfix version to export */
-    mnslp_template_container templates;  /* list of templates  */
+    public: 
+		int              		 sourceid;    /* domain id of the exporting process */
+		int              		 version;     /* ipfix version to export */
+		mnslp_template_container templates;  /* list of templates  */
 
-    char        *buffer;          /* output buffer */
-    int         nrecords;         /* no. of records in buffer */
-    size_t      offset;           /* output buffer fill level */
-    uint32_t    seqno;            /* sequence no. of next message */
+		char        *buffer;          /* output buffer */
+		int         nrecords;         /* no. of records in buffer */
+		size_t      offset;           /* output buffer fill level */
+		uint32_t    seqno;            /* sequence no. of next message */
 
-    /* experimental */
-    int        cs_tid;            /* template id of current dataset */
-    int        cs_bytes;          /* size of current set */
-    uint8_t    *cs_header;        /* start of current set */
+		/* experimental */
+		int        cs_tid;            /* template id of current dataset */
+		int        cs_bytes;          /* size of current set */
+		uint8_t    *cs_header;        /* start of current set */
 
-} ipfix_t;
+	inline ipfix_t(){}
+	
+	inline ~ipfix_t(){}
+
+};
 
 typedef struct {
     int       eno;		/* IPFIX enterprize number, 0 for standard element */
@@ -187,7 +219,7 @@ class mnslp_ipfix_message
 	   time_t             				g_tstart;
 	   iobuf_t            				g_iobuf[2], *g_buflist;
 	   uint16_t           				g_lasttid;                  /* change this! */
-	   ipfix_datarecord_t 				g_data; 					  /* ipfix_export */
+	   data_record 						g_data; 					/* ipfix_export */
 
    protected:
 	
@@ -198,12 +230,37 @@ class mnslp_ipfix_message
 	   int add_vendor_information_elements( ipfix_field_type_t *fields );
 	   
 	   void new_template( mnslp_ipfix_template **templ, int nfields );
+	   
+	   void finish_cs( void );
+	   
+	   int _write_hdr( iobuf_t *buf );
+	   
+	   void _freebuf( iobuf_t *b );
+	   
+	   iobuf_t * _getbuf ( void );
+	   
+	   int _output_flush( void );
+	   
+	   int _write_template( mnslp_ipfix_template  *templ );
+	   
+	   int _output_array( mnslp_ipfix_template *templ,
+						  int              nfields );
+                          
+       int output_array( mnslp_ipfix_template *templ,
+			        	 int              nfields );
+		
+	   int  output_flush( void );
 
+	   
    public:	
+
+	   mnslp_ipfix_message( int sourceid, int ipfix_version);
+	   
+	   ~mnslp_ipfix_message(void);
    
 	   void new_data_template( mnslp_ipfix_template **templ, int nfields );
                               
-	   int  new_option_template( mnslp_ipfix_template **templ, int nfields );
+	   void  new_option_template( mnslp_ipfix_template **templ, int nfields );
                                 
 	   int  add_field( mnslp_ipfix_template *templ,
                        uint32_t enterprise_number,
@@ -218,20 +275,10 @@ class mnslp_ipfix_message
 	   int  make_template( mnslp_ipfix_template **templ,
 						   export_fields_t *fields, 
 						   int nfields );
-	   int  output( mnslp_ipfix_template *templ, ... );
 	   
+	   int  output( mnslp_ipfix_template *templ, 
+					data_record * data );
 	   
-	   int  output_array( mnslp_ipfix_template *templ, 
-			   			  int nfields, 
-					   	  void **fields, 
-					      uint16_t *lengths );
-                         
-	   int  output_flush( void );
-	   
-	   mnslp_ipfix_message( int sourceid, int ipfix_version);
-	   
-	   ~mnslp_ipfix_message(void);
-
 };
 
 

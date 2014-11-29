@@ -28,34 +28,11 @@
 // ===========================================================
 
 #include "mnslp_ipfix_fields.h"
-#include <sys/types.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <sys/time.h>
-#include <inttypes.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
 
 
 
 namespace mnslp_ipfix
 {
-
-#ifndef NTOHLL
-
-uint8_t g_isLittleEndian = 0;
-void testEndianness() {
-	uint32_t tmp = 0x0a0b0c0d;
-	g_isLittleEndian = (tmp != ntohl(tmp));
-}
-	
-#define HTONLL(val)  (g_isLittleEndian ? ((uint64_t)(htonl((uint32_t)((val)>>32))) | \
-                          (((uint64_t)htonl((uint32_t)((val)&0xFFFFFFFF)))<<32)) : (val))
-#define NTOHLL(val)  (g_isLittleEndian ? ((uint64_t)(ntohl((uint32_t)((val)>>32))) | \
-                          (((uint64_t)ntohl((uint32_t)((val)&0xFFFFFFFF)))<<32)) : (val))
-#endif
 
 mnslp_ipfix_field::mnslp_ipfix_field(ipfix_field_type_t param): field_type(param)
 {
@@ -111,6 +88,95 @@ mnslp_ipfix_field& mnslp_ipfix_field::operator= (const mnslp_ipfix_field &param)
 	return *this;
 }
 
+msnl_ipfix_value_field::msnl_ipfix_value_field(mnslp_ipfix_field f_type, uint8_t _value8)
+{ 
+	if (f_type.get_field_type().length == 1)
+		value8 = _value8; 
+	else
+		throw mnslp_ipfix_bad_argument("Value does not agree with Field Type");
+}
+
+msnl_ipfix_value_field::msnl_ipfix_value_field(mnslp_ipfix_field f_type, uint16_t _value16)
+{ 
+	if (f_type.get_field_type().length == 2)
+		value16 = _value16; 
+	else
+		throw mnslp_ipfix_bad_argument("Value does not agree with Field Type");
+		
+}
+
+msnl_ipfix_value_field::msnl_ipfix_value_field(mnslp_ipfix_field f_type, uint32_t _value32)
+{ 
+	if (f_type.get_field_type().length == 4)
+		value32 = _value32; 
+	else
+		throw mnslp_ipfix_bad_argument("Value does not agree with Field Type");
+}
+
+msnl_ipfix_value_field::msnl_ipfix_value_field(mnslp_ipfix_field f_type, uint64_t _value64)
+{ 
+	if (f_type.get_field_type().length == 8)
+		value64 = _value64; 
+	else
+		throw mnslp_ipfix_bad_argument("Value does not agree with Field Type");
+		
+}
+
+
+msnl_ipfix_value_field::msnl_ipfix_value_field(mnslp_ipfix_field f_type, 
+					uint8_t * _valuebyte, int lenght)
+{
+	
+    if ( f_type.get_field_type().coding == IPFIX_CODING_IPADDR ) 
+    {
+		if (f_type.get_field_type().length == lenght){
+			valuebyte = new uint8_t[lenght];
+			for (int i=0; i<lenght; i++)
+				valuebyte[i] = _valuebyte[i];
+		}
+		else
+		{
+			throw mnslp_ipfix_bad_argument("Value does not agree with Field Type");
+		}
+	}
+    else if ( f_type.get_field_type().coding == IPFIX_CODING_BYTES )
+    {
+		if (f_type.get_field_type().length == lenght){
+			valuebyte = new uint8_t[lenght];
+			for (int i=0; i<lenght; i++)
+				valuebyte[i] = _valuebyte[i];
+		}
+		else if (f_type.get_field_type().length == 65535 ){
+			valuebyte = new uint8_t[lenght];
+			for (int i=0; i<lenght; i++)
+				valuebyte[i] = _valuebyte[i];
+		}
+		else
+		{
+			throw mnslp_ipfix_bad_argument("Value does not agree with Field Type");
+		}
+    }
+    else
+    {
+		throw mnslp_ipfix_bad_argument("Value does not agree with Field Type");
+	}	
+}
+
+msnl_ipfix_value_field::msnl_ipfix_value_field(mnslp_ipfix_field f_type, 
+					char * _valuechar, int lenght)
+{
+	
+    if ( f_type.get_field_type().coding== IPFIX_CODING_STRING ) {
+		valuechar = new char[lenght];
+		memcpy ( valuechar, _valuechar, lenght );
+    }
+    else
+    {
+		throw mnslp_ipfix_bad_argument("Value does not agree with Field Type");
+	}	
+}
+
+
 
 msnlp_ipfix_field_container::msnlp_ipfix_field_container()
 {
@@ -126,19 +192,34 @@ msnlp_ipfix_field_container::~msnlp_ipfix_field_container()
 void msnlp_ipfix_field_container::AddFieldType(int _eno, int _ftype, ssize_t _length, 
 											  int _coding, const std::string _name, 
 										  	  const std::string _documentation)
+										  	  throw(mnslp_ipfix_bad_argument)
 {
-ipfix_field_type_t newType;
-newType.eno = _eno;
-newType.ftype = _ftype;
-newType.length = _length;
-newType.coding = _coding;
-newType.name = _name;
-newType.documentation = _documentation;
-
-mnslp_ipfix_field a = mnslp_ipfix_field(newType);
-fieldTypeList.push_back(a);
+	ipfix_field_type_t newType;
+	newType.eno = _eno;
+	newType.ftype = _ftype;
+	newType.length = _length;
+	newType.coding = _coding;
+	newType.name = _name;
+	newType.documentation = _documentation;
+	AddFieldType(newType);
 
 };
+
+
+void msnlp_ipfix_field_container::AddFieldType(ipfix_field_type_t &param)
+								 throw(mnslp_ipfix_bad_argument)
+{
+	mnslp_ipfix_field a = mnslp_ipfix_field(param);
+
+	for (std::vector<mnslp_ipfix_field>::iterator it = fieldTypeList.begin() ; 
+			it != fieldTypeList.end(); ++it)
+	{
+        if( *it== a )
+			throw mnslp_ipfix_bad_argument("Field already exists in the container");
+	}	
+	fieldTypeList.push_back(a);
+
+}
 
 
 void msnlp_ipfix_field_container::initialize_forward(void)
@@ -146,7 +227,6 @@ void msnlp_ipfix_field_container::initialize_forward(void)
 
 	AddFieldType(0, IPFIX_FT_OCTETDELTACOUNT, 8, IPFIX_CODING_UINT, 
 				 "octetDeltaCount", "");
-
     AddFieldType(0, IPFIX_FT_PACKETDELTACOUNT, 8, IPFIX_CODING_UINT, 
      "packetDeltaCount", "" );
     AddFieldType(0, IPFIX_FT_FLOWS, 8, IPFIX_CODING_UINT, 
@@ -570,7 +650,7 @@ void msnlp_ipfix_field_container::initialize_forward(void)
    AddFieldType( 0, IPFIX_FT_HASHINITIALISERVALUE, 8, IPFIX_CODING_UINT, 
      "hashInitialiserValue", "" );
      
-   AddFieldType( 0, 0, -1, 0, NULL, NULL );
+   AddFieldType( 0, 0, -1, 0, "", "" );
 
 }
 
@@ -1001,14 +1081,9 @@ void msnlp_ipfix_field_container::initialize_reverse(void)
      "reverse hashDigestOutput", "" );
    AddFieldType( REV_PEN, IPFIX_FT_HASHINITIALISERVALUE, 8, IPFIX_CODING_UINT, 
      "reverse hashInitialiserValue", "" );
-   AddFieldType( REV_PEN, 0, -1, 0, NULL, NULL );	
+   
+   AddFieldType( REV_PEN, 0, -1, 0, "", "" );	
 
-}
-
-void msnlp_ipfix_field_container::AddFieldType(ipfix_field_type_t &param)
-{
-	mnslp_ipfix_field a = mnslp_ipfix_field(param);
-	fieldTypeList.push_back(a);
 }
 
 

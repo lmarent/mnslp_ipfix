@@ -31,7 +31,7 @@
  */
 
 #include <vector>
-#include "ipfix_fields.h"
+#include "mnslp_ipfix_fields.h"
 
 namespace mnslp_ipfix
 {
@@ -63,6 +63,14 @@ class mnslp_ipfix_template
 		inline mnslp_ipfix_template(){}
 		
 		inline ~mnslp_ipfix_template(){}
+		
+		inline void set_id(uint16_t _tid){ tid = _tid; }
+		
+		inline void set_type(ipfix_templ_type_t _type){ type= _type; }
+		
+		inline void set_time_send(time_t _tsend){ tsend = _tsend; }
+		
+		inline void set_maxfields(int _maxfields){ maxfields = _maxfields; }
 		
 		inline ipfix_templ_type_t get_type(void)
 		{

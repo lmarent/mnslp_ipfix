@@ -149,6 +149,9 @@ CCDEPMODE = depmode=gcc3
 CFLAGS = -g -O2
 CPP = gcc -E
 CPPFLAGS = 
+CPPUNIT_CFLAGS = 
+CPPUNIT_CONFIG = /usr/bin/cppunit-config
+CPPUNIT_LIBS = -lcppunit -ldl
 CXX = g++
 CXXCPP = g++ -E
 CXXDEPMODE = depmode=gcc3

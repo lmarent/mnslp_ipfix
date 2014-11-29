@@ -4,6 +4,7 @@
 AC_PREREQ([2.68])
 AC_INIT([mnslp_ipfix], [0.1], [la.marentes455@uniandes.edu.co])
 AM_INIT_AUTOMAKE
+AM_PATH_CPPUNIT(1.9.6)
 LT_INIT
 AC_CONFIG_SRCDIR([src/mnslp_libipfix.cpp])
 AC_CONFIG_MACRO_DIR([m4])
@@ -51,6 +52,7 @@ AC_SUBST(IPFIX_LIBS)
 
 
 AC_CONFIG_FILES([Makefile
-                 src/Makefile])
+                 src/Makefile
+                 test/Makefile])
 
 AC_OUTPUT

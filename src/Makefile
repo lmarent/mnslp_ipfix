@@ -50,7 +50,8 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am_mnslp_ipfix_OBJECTS = mnslp_ipfix_field.$(OBJEXT) \
-	mnslp_ipfix_message.$(OBJEXT)
+	mnslp_ipfix_templates.$(OBJEXT) mnslp_ipfix_message.$(OBJEXT) \
+	main.$(OBJEXT)
 mnslp_ipfix_OBJECTS = $(am_mnslp_ipfix_OBJECTS)
 mnslp_ipfix_DEPENDENCIES =
 DEFAULT_INCLUDES = -I.
@@ -83,6 +84,9 @@ CCDEPMODE = depmode=gcc3
 CFLAGS = -g -O2
 CPP = gcc -E
 CPPFLAGS = 
+CPPUNIT_CFLAGS = 
+CPPUNIT_CONFIG = /usr/bin/cppunit-config
+CPPUNIT_LIBS = -lcppunit -ldl
 CXX = g++
 CXXCPP = g++ -E
 CXXDEPMODE = depmode=gcc3
@@ -195,7 +199,10 @@ top_builddir = ..
 top_srcdir = ..
 AUTOMAKE_OPTIONS = foreign
 mnslp_ipfix_SOURCES = mnslp_ipfix_field.cpp \
-					  mnslp_ipfix_message.cpp
+					  mnslp_ipfix_templates.cpp \
+					  mnslp_ipfix_message.cpp \
+					  main.cpp
+
 
 #mlog.cpp
 mnslp_ipfix_LDADD = 
@@ -291,8 +298,10 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+include ./$(DEPDIR)/main.Po
 include ./$(DEPDIR)/mnslp_ipfix_field.Po
 include ./$(DEPDIR)/mnslp_ipfix_message.Po
+include ./$(DEPDIR)/mnslp_ipfix_templates.Po
 
 .cpp.o:
 	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<

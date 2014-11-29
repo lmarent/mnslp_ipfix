@@ -1,4 +1,4 @@
-mnslp_ipfix_field.o: mnslp_ipfix_field.cpp \
+mnslp_ipfix_field.o: ../src/mnslp_ipfix_field.cpp \
  ../include/mnslp_ipfix_fields.h /usr/include/c++/4.6/vector \
  /usr/include/c++/4.6/bits/stl_algobase.h \
  /usr/include/c++/4.6/i686-linux-gnu/./bits/c++config.h \

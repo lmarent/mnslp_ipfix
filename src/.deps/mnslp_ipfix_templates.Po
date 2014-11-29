@@ -1,5 +1,5 @@
-mnslp_ipfix_field.o: mnslp_ipfix_field.cpp \
- ../include/mnslp_ipfix_fields.h /usr/include/c++/4.6/vector \
+mnslp_ipfix_templates.o: mnslp_ipfix_templates.cpp \
+ ../include/mnslp_ipfix_templates.h /usr/include/c++/4.6/vector \
  /usr/include/c++/4.6/bits/stl_algobase.h \
  /usr/include/c++/4.6/i686-linux-gnu/./bits/c++config.h \
  /usr/include/c++/4.6/i686-linux-gnu/./bits/os_defines.h \
@@ -28,8 +28,8 @@ mnslp_ipfix_field.o: mnslp_ipfix_field.cpp \
  /usr/include/c++/4.6/initializer_list \
  /usr/include/c++/4.6/bits/stl_bvector.h \
  /usr/include/c++/4.6/bits/range_access.h \
- /usr/include/c++/4.6/bits/vector.tcc /usr/include/stdlib.h \
- /usr/lib/gcc/i686-linux-gnu/4.6/include/stddef.h \
+ /usr/include/c++/4.6/bits/vector.tcc ../include/mnslp_ipfix_fields.h \
+ /usr/include/stdlib.h /usr/lib/gcc/i686-linux-gnu/4.6/include/stddef.h \
  /usr/include/i386-linux-gnu/bits/waitflags.h \
  /usr/include/i386-linux-gnu/bits/waitstatus.h /usr/include/endian.h \
  /usr/include/i386-linux-gnu/bits/endian.h \
@@ -93,9 +93,10 @@ mnslp_ipfix_field.o: mnslp_ipfix_field.cpp \
  /usr/include/asm-generic/sockios.h \
  /usr/include/i386-linux-gnu/bits/socket2.h /usr/include/netinet/in.h \
  /usr/include/i386-linux-gnu/bits/in.h ../include/ipfix_def.h \
- /usr/include/c++/4.6/cstddef ../include/mnslp_ipfix_exception.h
+ /usr/include/c++/4.6/cstddef ../include/mnslp_ipfix_exception.h \
+ ../include/mnslp_ipfix_exception.h
 
-../include/mnslp_ipfix_fields.h:
+../include/mnslp_ipfix_templates.h:
 
 /usr/include/c++/4.6/vector:
 
@@ -166,6 +167,8 @@ mnslp_ipfix_field.o: mnslp_ipfix_field.cpp \
 /usr/include/c++/4.6/bits/range_access.h:
 
 /usr/include/c++/4.6/bits/vector.tcc:
+
+../include/mnslp_ipfix_fields.h:
 
 /usr/include/stdlib.h:
 
@@ -338,5 +341,7 @@ mnslp_ipfix_field.o: mnslp_ipfix_field.cpp \
 ../include/ipfix_def.h:
 
 /usr/include/c++/4.6/cstddef:
+
+../include/mnslp_ipfix_exception.h:
 
 ../include/mnslp_ipfix_exception.h:

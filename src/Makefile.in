@@ -50,7 +50,8 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am_mnslp_ipfix_OBJECTS = mnslp_ipfix_field.$(OBJEXT) \
-	mnslp_ipfix_message.$(OBJEXT)
+	mnslp_ipfix_templates.$(OBJEXT) mnslp_ipfix_message.$(OBJEXT) \
+	main.$(OBJEXT)
 mnslp_ipfix_OBJECTS = $(am_mnslp_ipfix_OBJECTS)
 mnslp_ipfix_DEPENDENCIES =
 DEFAULT_INCLUDES = -I.@am__isrc@
@@ -83,6 +84,9 @@ CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
+CPPUNIT_CFLAGS = @CPPUNIT_CFLAGS@
+CPPUNIT_CONFIG = @CPPUNIT_CONFIG@
+CPPUNIT_LIBS = @CPPUNIT_LIBS@
 CXX = @CXX@
 CXXCPP = @CXXCPP@
 CXXDEPMODE = @CXXDEPMODE@
@@ -195,7 +199,10 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AUTOMAKE_OPTIONS = foreign
 mnslp_ipfix_SOURCES = mnslp_ipfix_field.cpp \
-					  mnslp_ipfix_message.cpp
+					  mnslp_ipfix_templates.cpp \
+					  mnslp_ipfix_message.cpp \
+					  main.cpp
+
 
 #mlog.cpp
 mnslp_ipfix_LDADD = @IPFIX_LIBS@
@@ -291,8 +298,10 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mnslp_ipfix_field.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mnslp_ipfix_message.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mnslp_ipfix_templates.Po@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<

@@ -405,7 +405,7 @@ on `(hostname || uname -n) 2>/dev/null | sed 1q`
 "
 
 # Files that config.status was made for.
-config_files=" Makefile src/Makefile"
+config_files=" Makefile src/Makefile test/Makefile"
 config_commands=" depfiles libtool"
 
 ac_cs_usage="\
@@ -799,6 +799,7 @@ do
     "libtool") CONFIG_COMMANDS="$CONFIG_COMMANDS libtool" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
+    "test/Makefile") CONFIG_FILES="$CONFIG_FILES test/Makefile" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac
@@ -927,6 +928,9 @@ S["build_vendor"]="pc"
 S["build_cpu"]="i686"
 S["build"]="i686-pc-linux-gnu"
 S["LIBTOOL"]="$(SHELL) $(top_builddir)/libtool"
+S["CPPUNIT_LIBS"]="-lcppunit -ldl"
+S["CPPUNIT_CFLAGS"]=""
+S["CPPUNIT_CONFIG"]="/usr/bin/cppunit-config"
 S["am__untar"]="$${TAR-tar} xf -"
 S["am__tar"]="$${TAR-tar} chof - \"$$tardir\""
 S["AMTAR"]="$${TAR-tar}"
