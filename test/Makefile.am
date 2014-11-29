@@ -7,8 +7,10 @@ check_PROGRAMS = $(TESTS)
 
 test_runner_SOURCES = @top_srcdir@/src/mnslp_ipfix_field.cpp \
 					  @top_srcdir@/src/mnslp_ipfix_templates.cpp \
+					  @top_srcdir@/src/mnslp_ipfix_data_record.cpp \
 					  @top_srcdir@/src/mnslp_ipfix_message.cpp \
 					  @top_srcdir@/test/mnslp_ipfix_field_test.cpp \
+					  @top_srcdir@/test/mnslp_ipfix_data_record_test.cpp \
 					  @top_srcdir@/test/mnslp_ipfix_message_test.cpp \
 					  @top_srcdir@/test/test_runner.cpp
 					  		   

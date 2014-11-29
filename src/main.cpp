@@ -5,7 +5,9 @@
 #include <errno.h>
 #include <iostream>
 
+#include "mnslp_ipfix_data_record.h"
 #include "mnslp_ipfix_message.h"
+
 
 using namespace mnslp_ipfix;
 
@@ -13,7 +15,7 @@ int main ( int argc, char **argv )
 {
 	mnslp_ipfix_template *templdata;
 	mnslp_ipfix_template *templscope;
-	data_record data;
+	mnslp_ipfix_data_record data;
 	
 	int nfields = 3;
 	int result;
@@ -21,15 +23,25 @@ int main ( int argc, char **argv )
 	char   buf[31]  = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
                            11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
                            21, 22, 23, 24, 25, 26, 27, 28, 29, 30 };
+                           
+	uint8_t value8 = 1;
+	uint32_t value32 = 3;	
+	uint8_t valuebyte0[5] = "1234";
+	int num_fields = 0;
+                           
 
 	mnslp_ipfix_message message = mnslp_ipfix_message(sourceid, IPFIX_VERSION);
 	
 	message.new_data_template( &templdata, nfields );
 	result = message.add_field(templdata, 0, IPFIX_FT_SOURCEIPV4ADDRESS, 4);
 	
-	data.insert_field(0, IPFIX_FT_SOURCEIPV4ADDRESS, (void *) buf);
-	data.insert_field_lenght(0, IPFIX_FT_SOURCEIPV4ADDRESS, 4);
+
+	mnslp_ipfix_field *ptrField1 = message.get_field_definition( 0, IPFIX_FT_SOURCEIPV4ADDRESS );
+	mnslp_ipfix_value_field fvalue3 = mnslp_ipfix_value_field(*ptrField1, (uint8_t *) buf, 4);
+	data.insert_field(0, IPFIX_FT_SOURCEIPV4ADDRESS, fvalue3);
+	data.insert_field_length(0, IPFIX_FT_SOURCEIPV4ADDRESS, 4);
 	
+	std::cout << "field 3"<< std::endl;	
 	message.output(templdata, &data);
 	std::cout << "output" << result << std::endl;
 	

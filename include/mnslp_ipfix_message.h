@@ -46,6 +46,7 @@
 
 #include "ipfix_def.h"
 #include "mnslp_ipfix_fields.h"
+#include "mnslp_ipfix_data_record.h"
 #include "mnslp_ipfix_templates.h"
 
 #ifndef ENOTSUP
@@ -134,36 +135,6 @@ typedef enum {
 } ipfix_proto_t;
 
 
-class data_record
-{
-
-private:
-    std::map<mnslp_ipfix_field_key, void *> field_data;    	/* Data values for every field */
-    std::map<mnslp_ipfix_field_key, uint16_t > field_length;	/* Variable length definition */
-
-public:
-    
-    data_record();
-    
-    ~data_record();
-    
-    void insert_field(int, int, void * value);
-        
-    void insert_field(mnslp_ipfix_field_key &param, void * value);
-    
-    void insert_field_lenght(int eno, int ftype, uint16_t lenght);
-    
-    void insert_field_lenght(mnslp_ipfix_field_key &param, uint16_t lenght);
-    
-    int get_num_fields();
-    
-    void * get_field(mnslp_ipfix_field_key &param);
-    
-    uint16_t get_lenght(mnslp_ipfix_field_key &param);
-    
-    void clear();
-    
-};
 
 
 class ipfix_t
@@ -219,7 +190,7 @@ class mnslp_ipfix_message
 	   time_t             				g_tstart;
 	   iobuf_t            				g_iobuf[2], *g_buflist;
 	   uint16_t           				g_lasttid;                  /* change this! */
-	   data_record 						g_data; 					/* ipfix_export */
+	   mnslp_ipfix_data_record 			g_data; 					/* ipfix_export */
 
    protected:
 	
@@ -261,6 +232,8 @@ class mnslp_ipfix_message
 	   void new_data_template( mnslp_ipfix_template **templ, int nfields );
                               
 	   void  new_option_template( mnslp_ipfix_template **templ, int nfields );
+                   
+	   mnslp_ipfix_field * get_field_definition( int eno, int type );
                                 
 	   int  add_field( mnslp_ipfix_template *templ,
                        uint32_t enterprise_number,
@@ -277,7 +250,7 @@ class mnslp_ipfix_message
 						   int nfields );
 	   
 	   int  output( mnslp_ipfix_template *templ, 
-					data_record * data );
+					mnslp_ipfix_data_record * data );
 	   
 };
 

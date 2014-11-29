@@ -60,7 +60,7 @@ class mnslp_ipfix_template
 		std::vector<ipfix_template_field_t> scopefields;
 	public:
 		
-		inline mnslp_ipfix_template(){}
+		inline mnslp_ipfix_template():tsend(0){}
 		
 		inline ~mnslp_ipfix_template(){}
 		

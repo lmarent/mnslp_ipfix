@@ -90,18 +90,17 @@ main.o: main.cpp /usr/include/stdio.h /usr/include/features.h \
  /usr/include/c++/4.6/bits/locale_facets.tcc \
  /usr/include/c++/4.6/bits/basic_ios.tcc \
  /usr/include/c++/4.6/bits/ostream.tcc /usr/include/c++/4.6/istream \
- /usr/include/c++/4.6/bits/istream.tcc ../include/mnslp_ipfix_message.h \
- /usr/include/inttypes.h /usr/lib/gcc/i686-linux-gnu/4.6/include/stdint.h \
- /usr/include/stdint.h /usr/include/c++/4.6/map \
+ /usr/include/c++/4.6/bits/istream.tcc \
+ ../include/mnslp_ipfix_data_record.h /usr/include/c++/4.6/map \
  /usr/include/c++/4.6/bits/stl_tree.h /usr/include/c++/4.6/bits/stl_map.h \
- /usr/include/c++/4.6/bits/stl_multimap.h ../include/ipfix_def.h \
- /usr/include/c++/4.6/cstddef ../include/mnslp_ipfix_fields.h \
+ /usr/include/c++/4.6/bits/stl_multimap.h ../include/mnslp_ipfix_fields.h \
  /usr/include/c++/4.6/vector /usr/include/c++/4.6/bits/stl_construct.h \
  /usr/include/c++/4.6/bits/stl_uninitialized.h \
  /usr/include/c++/4.6/bits/stl_vector.h \
  /usr/include/c++/4.6/bits/stl_bvector.h \
  /usr/include/c++/4.6/bits/vector.tcc \
- /usr/include/i386-linux-gnu/sys/time.h \
+ /usr/include/i386-linux-gnu/sys/time.h /usr/include/inttypes.h \
+ /usr/lib/gcc/i686-linux-gnu/4.6/include/stdint.h /usr/include/stdint.h \
  /usr/include/i386-linux-gnu/sys/socket.h \
  /usr/include/i386-linux-gnu/sys/uio.h \
  /usr/include/i386-linux-gnu/bits/uio.h \
@@ -112,7 +111,9 @@ main.o: main.cpp /usr/include/stdio.h /usr/include/features.h \
  /usr/include/i386-linux-gnu/asm/sockios.h \
  /usr/include/asm-generic/sockios.h \
  /usr/include/i386-linux-gnu/bits/socket2.h /usr/include/netinet/in.h \
- /usr/include/i386-linux-gnu/bits/in.h ../include/mnslp_ipfix_exception.h \
+ /usr/include/i386-linux-gnu/bits/in.h ../include/ipfix_def.h \
+ /usr/include/c++/4.6/cstddef ../include/mnslp_ipfix_exception.h \
+ ../include/mnslp_ipfix_message.h ../include/mnslp_ipfix_data_record.h \
  ../include/mnslp_ipfix_templates.h
 
 /usr/include/stdio.h:
@@ -361,13 +362,7 @@ main.o: main.cpp /usr/include/stdio.h /usr/include/features.h \
 
 /usr/include/c++/4.6/bits/istream.tcc:
 
-../include/mnslp_ipfix_message.h:
-
-/usr/include/inttypes.h:
-
-/usr/lib/gcc/i686-linux-gnu/4.6/include/stdint.h:
-
-/usr/include/stdint.h:
+../include/mnslp_ipfix_data_record.h:
 
 /usr/include/c++/4.6/map:
 
@@ -376,10 +371,6 @@ main.o: main.cpp /usr/include/stdio.h /usr/include/features.h \
 /usr/include/c++/4.6/bits/stl_map.h:
 
 /usr/include/c++/4.6/bits/stl_multimap.h:
-
-../include/ipfix_def.h:
-
-/usr/include/c++/4.6/cstddef:
 
 ../include/mnslp_ipfix_fields.h:
 
@@ -396,6 +387,12 @@ main.o: main.cpp /usr/include/stdio.h /usr/include/features.h \
 /usr/include/c++/4.6/bits/vector.tcc:
 
 /usr/include/i386-linux-gnu/sys/time.h:
+
+/usr/include/inttypes.h:
+
+/usr/lib/gcc/i686-linux-gnu/4.6/include/stdint.h:
+
+/usr/include/stdint.h:
 
 /usr/include/i386-linux-gnu/sys/socket.h:
 
@@ -421,6 +418,14 @@ main.o: main.cpp /usr/include/stdio.h /usr/include/features.h \
 
 /usr/include/i386-linux-gnu/bits/in.h:
 
+../include/ipfix_def.h:
+
+/usr/include/c++/4.6/cstddef:
+
 ../include/mnslp_ipfix_exception.h:
+
+../include/mnslp_ipfix_message.h:
+
+../include/mnslp_ipfix_data_record.h:
 
 ../include/mnslp_ipfix_templates.h:

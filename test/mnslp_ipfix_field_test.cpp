@@ -39,6 +39,14 @@ class Mnslp_Ipfix_Field_Test : public CppUnit::TestFixture {
 	CPPUNIT_TEST( testAssign );
 	CPPUNIT_TEST( testAddFields );
 	CPPUNIT_TEST_EXCEPTION( testException, mnslp_ipfix_bad_argument );
+	CPPUNIT_TEST_EXCEPTION( testExceptionInt1, mnslp_ipfix_bad_argument );
+	CPPUNIT_TEST_EXCEPTION( testExceptionInt2, mnslp_ipfix_bad_argument );
+	CPPUNIT_TEST_EXCEPTION( testExceptionInt4, mnslp_ipfix_bad_argument );
+	CPPUNIT_TEST_EXCEPTION( testExceptionInt8, mnslp_ipfix_bad_argument );
+	CPPUNIT_TEST_EXCEPTION( testExceptionAddress4, mnslp_ipfix_bad_argument );
+	CPPUNIT_TEST_EXCEPTION( testExceptionAddress16, mnslp_ipfix_bad_argument );
+	CPPUNIT_TEST_EXCEPTION( testExceptionString, mnslp_ipfix_bad_argument );
+	CPPUNIT_TEST_EXCEPTION( testExceptionByteFixed, mnslp_ipfix_bad_argument );
     CPPUNIT_TEST( testFieldValues );
 	CPPUNIT_TEST_SUITE_END();
 
@@ -51,6 +59,14 @@ class Mnslp_Ipfix_Field_Test : public CppUnit::TestFixture {
 	void testException();
 	void testAddFields();
 	void testFieldValues();
+	void testExceptionInt1();
+	void testExceptionInt2();
+	void testExceptionInt4();
+	void testExceptionInt8();
+	void testExceptionAddress4();
+	void testExceptionAddress16();
+	void testExceptionString();
+	void testExceptionByteFixed();
 
   private:
     ipfix_field_type_t field1;
@@ -103,7 +119,6 @@ void Mnslp_Ipfix_Field_Test::tearDown()
 	delete(ptrField1);
 	delete(ptrField2);
 }
-
 
 void Mnslp_Ipfix_Field_Test::testGetters() 
 {
@@ -173,10 +188,11 @@ void Mnslp_Ipfix_Field_Test::testFieldValues()
 	uint32_t value32 = 3;
 	uint64_t value64 = 4;
 	char valuechar[5] = "1234";
-	char valuechar2[17] = "1234567891011122";
 	uint8_t valuebyte0[5] = "1234";
 	uint8_t valuebyte1[7] = "123456";
 	uint8_t valuebyte2[15] = "12345678912313";
+	uint8_t valuebyte3[17] = "1234567891011122";
+	bool equal = true;
 	
     field_container.clear();   
 	field_container.initialize_forward();
@@ -185,54 +201,184 @@ void Mnslp_Ipfix_Field_Test::testFieldValues()
 
 	// Int 1
 	tmpField = field_container.get_field( 0, IPFIX_FT_IGMPTYPE );
-	msnl_ipfix_value_field fvalue1 = msnl_ipfix_value_field(*tmpField, value8);
+	mnslp_ipfix_value_field fvalue1 = mnslp_ipfix_value_field(*tmpField, value8);
 	CPPUNIT_ASSERT( (uint8_t) 1 == fvalue1.get_value_int8() );
 
 	// Int 2
 	tmpField = field_container.get_field( 0, IPFIX_FT_ICMPTYPECODEIPV4 );
-	msnl_ipfix_value_field fvalue2 = msnl_ipfix_value_field(*tmpField, value16);
+	mnslp_ipfix_value_field fvalue2 = mnslp_ipfix_value_field(*tmpField, value16);
 	CPPUNIT_ASSERT( (uint16_t) 2 == fvalue2.get_value_int16() );
 
 	// Int 4
 	tmpField = field_container.get_field( 0, IPFIX_FT_INGRESSINTERFACE );
-	msnl_ipfix_value_field fvalue3 = msnl_ipfix_value_field(*tmpField, value32);
+	mnslp_ipfix_value_field fvalue3 = mnslp_ipfix_value_field(*tmpField, value32);
 	CPPUNIT_ASSERT( (uint32_t) 3 == fvalue3.get_value_int32() );
 	
     //Address 4
 	tmpField = field_container.get_field( 0, IPFIX_FT_SOURCEIPV4ADDRESS );
-	msnl_ipfix_value_field fvalue4 = msnl_ipfix_value_field(*tmpField, (uint8_t *) valuebyte0, 4);
-	uint8_t * valuebyte3 = fvalue4.get_value_address();
-	std::cout << "val:" << std::endl;
-	for (int i=0; i<4; i++)
-		std::cout << valuebyte3[i];
-	//CPPUNIT_ASSERT( valuebyte0 == fvalue4.get_value_address() );
+	mnslp_ipfix_value_field fvalue4 = mnslp_ipfix_value_field(*tmpField, (uint8_t *) valuebyte0, 4);
+	uint8_t * valuebyte4 = fvalue4.get_value_address();
+	for (int i=0; i < 4; i++)
+		if (valuebyte0[i] != valuebyte4[i]) equal = false;
+	CPPUNIT_ASSERT( true == equal );
 	  
 	// Int 8 
-	//tmpField = field_container.get_field( 0, IPFIX_FT_POSTMCASTPACKETDELTACOUNT );
-	//msnl_ipfix_value_field fvalue5 = msnl_ipfix_value_field(*tmpField, value64);
-	//uint64_t printv5 = fvalue5.get_value_int64();
-	//std::cout << "val:" << printv5 << std::endl;
+	tmpField = field_container.get_field( 0, IPFIX_FT_POSTMCASTPACKETDELTACOUNT );
+	mnslp_ipfix_value_field fvalue5 = mnslp_ipfix_value_field(*tmpField, value64);
+	uint64_t printv5 = fvalue5.get_value_int64();
+	CPPUNIT_ASSERT( printv5 == value64 );
 
-	// addres 16
-	//tmpField = field_container.get_field( 0, IPFIX_FT_SOURCEIPV6ADDRESS );
-	//msnl_ipfix_value_field fvalue6 = msnl_ipfix_value_field(*tmpField, (char *) valuechar2, 16);
-	//std::cout << "val:" << fvalue6.get_value_string() << std::endl;
+	// Address 16
+	tmpField = field_container.get_field( 0, IPFIX_FT_SOURCEIPV6ADDRESS );
+	mnslp_ipfix_value_field fvalue6 = mnslp_ipfix_value_field(*tmpField, (uint8_t *) valuebyte3, 16);
+	uint8_t * valuebyte5 = fvalue6.get_value_address();
+	for (int i=0; i < 16; i++)
+		if (valuebyte5[i] != valuebyte3[i]) equal = false;
+	CPPUNIT_ASSERT( true == equal );
 
 	// Bytes
-	//tmpField = field_container.get_field( 0, IPFIX_FT_POSTDESTINATIONMACADDRESS );
-	//msnl_ipfix_value_field fvalue7 = msnl_ipfix_value_field(*tmpField, (uint8_t *) valuebyte, 6);
-	//std::cout << "val:" << fvalue7.get_value_byte() << std::endl;
+	tmpField = field_container.get_field( 0, IPFIX_FT_POSTDESTINATIONMACADDRESS );
+	mnslp_ipfix_value_field fvalue7 = mnslp_ipfix_value_field(*tmpField, (uint8_t *) valuebyte1, 6);
+	uint8_t * valuebyte6 = fvalue7.get_value_byte();
+	for (int i=0; i < 6; i++)
+		if (valuebyte6[i] != valuebyte1[i]) equal = false;
+	CPPUNIT_ASSERT( true == equal );
 
 	// Bytes - variable length
-	//tmpField = field_container.get_field( 0, IPFIX_FT_MPLSLABELSTACKSECTION9 );
-	//msnl_ipfix_value_field fvalue8 = msnl_ipfix_value_field(*tmpField, (uint8_t *) valuebyte2, 14);
-	//std::cout << "val:" << fvalue8.get_value_byte() << std::endl;
+	tmpField = field_container.get_field( 0, IPFIX_FT_MPLSLABELSTACKSECTION9 );
+	mnslp_ipfix_value_field fvalue8 = mnslp_ipfix_value_field(*tmpField, (uint8_t *) valuebyte2, 14);
+	uint8_t * valuebyte7 = fvalue8.get_value_byte();
+	for (int i=0; i < 14; i++)
+		if (valuebyte7[i] != valuebyte2[i]) equal = false;
+	CPPUNIT_ASSERT( true == equal );
 	
 	// Float 8
-	//tmpField = field_container.get_field( 0, IPFIX_FT_PACKETSOBSERVED );
-	//msnl_ipfix_value_field fvalue9 = msnl_ipfix_value_field(*tmpField, value64);
-	//std::cout << "val:" << fvalue9.get_value_float64() << std::endl;
-
+	tmpField = field_container.get_field( 0, IPFIX_FT_PACKETSOBSERVED );
+	mnslp_ipfix_value_field fvalue9 = mnslp_ipfix_value_field(*tmpField, value64);
+	uint64_t float1 = fvalue9.get_value_float64();
+	CPPUNIT_ASSERT( float1 == value64 );
 	
+}
+
+void Mnslp_Ipfix_Field_Test::testExceptionInt1()
+{
+	uint8_t value8 = 1;
+	uint16_t value16 = 2;
+
+    field_container.clear();   
+	field_container.initialize_forward();
+
+	mnslp_ipfix_field * tmpField;
+
+	// Int 1
+	tmpField = field_container.get_field( 0, IPFIX_FT_IGMPTYPE );
+	mnslp_ipfix_value_field fvalue1 = mnslp_ipfix_value_field(*tmpField, value16);
+	
+}
+
+void Mnslp_Ipfix_Field_Test::testExceptionInt2()
+{
+	uint8_t value8 = 1;
+	uint16_t value16 = 2;
+
+    field_container.clear();   
+	field_container.initialize_forward();
+
+	mnslp_ipfix_field * tmpField;
+
+	// Int 2
+	tmpField = field_container.get_field( 0, IPFIX_FT_ICMPTYPECODEIPV4 );
+	mnslp_ipfix_value_field fvalue2 = mnslp_ipfix_value_field(*tmpField, value8);
+	
+}
+
+void Mnslp_Ipfix_Field_Test::testExceptionInt4()
+{
+	uint16_t value16 = 2;
+	uint32_t value32 = 3;
+	
+
+    field_container.clear();   
+	field_container.initialize_forward();
+
+	mnslp_ipfix_field * tmpField;
+
+	// Int 4
+	tmpField = field_container.get_field( 0, IPFIX_FT_INGRESSINTERFACE );
+	mnslp_ipfix_value_field fvalue3 = mnslp_ipfix_value_field(*tmpField, value16);
+	
+}
+
+void Mnslp_Ipfix_Field_Test::testExceptionInt8()
+{
+	uint32_t value32 = 3;
+	uint64_t value64 = 4;
+	
+    field_container.clear();   
+	field_container.initialize_forward();
+
+	mnslp_ipfix_field * tmpField;
+
+	// Int 8 
+	tmpField = field_container.get_field( 0, IPFIX_FT_POSTMCASTPACKETDELTACOUNT );
+	mnslp_ipfix_value_field fvalue5 = mnslp_ipfix_value_field(*tmpField, value32);
+	
+}
+
+void Mnslp_Ipfix_Field_Test::testExceptionAddress4()
+{
+	uint8_t valuebyte0[5] = "1234";
+
+    field_container.clear();   
+	field_container.initialize_forward();
+
+	mnslp_ipfix_field * tmpField;
+
+    //Address 4
+	tmpField = field_container.get_field( 0, IPFIX_FT_SOURCEIPV4ADDRESS );
+	mnslp_ipfix_value_field fvalue4 = mnslp_ipfix_value_field(*tmpField, (uint8_t *) valuebyte0, 10);
+
+
+}
+
+void Mnslp_Ipfix_Field_Test::testExceptionAddress16()
+{
+	uint8_t valuebyte3[17] = "1234567891011122";
+
+    field_container.clear();   
+	field_container.initialize_forward();
+
+	mnslp_ipfix_field * tmpField;
+
+	// Address 16
+	tmpField = field_container.get_field( 0, IPFIX_FT_SOURCEIPV6ADDRESS );
+	mnslp_ipfix_value_field fvalue6 = mnslp_ipfix_value_field(*tmpField, (uint8_t *) valuebyte3, 10);
+
+}
+
+void Mnslp_Ipfix_Field_Test::testExceptionString()
+{
+	
+	char valuechar[7] = "123467";
+    field_container.clear();   
+	field_container.initialize_forward();
+	mnslp_ipfix_field * tmpField;
+	tmpField = field_container.get_field( 0, IPFIX_FT_SOURCEIPV4ADDRESS );
+	mnslp_ipfix_value_field fvalue6 = mnslp_ipfix_value_field(*tmpField, (char *) valuechar, 4);
+	
+	
+}
+
+void Mnslp_Ipfix_Field_Test::testExceptionByteFixed()
+{
+	uint8_t valuebyte1[7] = "123456";
+
+    field_container.clear();   
+	field_container.initialize_forward();
+
+	mnslp_ipfix_field * tmpField;
+
+	tmpField = field_container.get_field( 0, IPFIX_FT_POSTDESTINATIONMACADDRESS );
+	mnslp_ipfix_value_field fvalue7 = mnslp_ipfix_value_field(*tmpField, (uint8_t *) valuebyte1, 5);
 }
 // EOF

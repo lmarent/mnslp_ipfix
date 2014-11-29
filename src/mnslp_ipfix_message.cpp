@@ -52,6 +52,7 @@
 
 
 #include "mnslp_ipfix_message.h"
+#include "mnslp_ipfix_data_record.h"
 #include "mnslp_ipfix_exception.h"
 
 
@@ -69,86 +70,6 @@ namespace mnslp_ipfix
 #define INSERTU32(b,l,val) \
         { uint32_t _t=htonl((val)); memcpy((b),&_t,4); (l)+=4; }
 
-data_record::data_record()
-{
-
-}
-
-data_record::~data_record()
-{
-	// free the memory assigned to data values.
-	std::map<mnslp_ipfix_field_key, void *>::iterator itr;
-	for ( itr = field_data.begin(); itr!= field_data.end(); itr++)
-	{
-		if (itr->second != NULL)
-			free (itr->second);
-	}
-
-}
-
-void data_record::insert_field(mnslp_ipfix_field_key &param, void * value)
-{
-	field_data.insert( std::pair<mnslp_ipfix_field_key,void *>(param,value) );
-}
-
-void data_record::insert_field(int eno, int ftype, void * value)
-{
-	mnslp_ipfix_field_key key = mnslp_ipfix_field_key(eno, ftype);
-	insert_field(key, value);
-}
-
-
-void data_record::insert_field_lenght(mnslp_ipfix_field_key &param, uint16_t lenght)
-{
-	field_length.insert( std::pair<mnslp_ipfix_field_key,uint16_t>(param,lenght) );
-}
-
-void data_record::insert_field_lenght(int eno, int ftype, uint16_t lenght)
-{
-	mnslp_ipfix_field_key key = mnslp_ipfix_field_key(eno, ftype);
-	insert_field_lenght(key, lenght);
-}
-
-
-int data_record::get_num_fields()
-{
-	field_data.size();
-}
-
-void * data_record::get_field(mnslp_ipfix_field_key &param)
-{
-	std::map<mnslp_ipfix_field_key,void *>::iterator it;
-	it=field_data.find(param);
-	if (it == field_data.end())
-		throw mnslp_ipfix_bad_argument("Parameter field was not found");
-	else	
-		return it->second;
-}
-
-uint16_t data_record::get_lenght(mnslp_ipfix_field_key &param)
-{
-	std::map<mnslp_ipfix_field_key,uint16_t>::iterator it;
-	it=field_length.find(param);
-	if (it == field_length.end())
-		throw mnslp_ipfix_bad_argument("Parameter field was not found");
-	else
-		it->second;
-}
-
-void data_record::clear()
-{
-	// free the memory assigned to data values.
-	std::map<mnslp_ipfix_field_key, void *>::iterator itr;
-	for ( itr = field_data.begin(); itr!= field_data.end(); itr++)
-	{
-		if (itr->second != NULL)
-			free (itr->second);
-	}
-	
-	field_data.clear();
-	field_length.clear();
-	
-}
 
 mnslp_ipfix_message::mnslp_ipfix_message( int sourceid, int ipfix_version ):
 		message(NULL), g_tstart(0), g_buflist(NULL)
@@ -191,7 +112,6 @@ mnslp_ipfix_message::~mnslp_ipfix_message( void )
 {
 
     close( );
-
     g_tstart = 0;
     
 }
@@ -327,6 +247,11 @@ void mnslp_ipfix_message::new_template( mnslp_ipfix_template **templ, int nfield
 		throw std::bad_alloc(exc);
 	}
 
+}
+
+mnslp_ipfix_field * mnslp_ipfix_message::get_field_definition( int eno, int type )
+{
+	return g_ipfix_fields.get_field(eno, type);
 }
 
 
@@ -612,6 +537,8 @@ int mnslp_ipfix_message::_write_template( mnslp_ipfix_template  *templ )
         }
     }
 
+    std::cout << "length 1:" << tsize << "offset:" << message->offset << std::endl;
+
     /* check space */
     if ( tsize + message->offset > IPFIX_DEFAULT_BUFLEN ) 
     {
@@ -694,7 +621,8 @@ int mnslp_ipfix_message::_write_template( mnslp_ipfix_template  *templ )
     }
     templ->set_time_send( time(NULL) );
 
-
+	std::cout << "buffer len:" << buflen << std::endl;
+	
     message->offset += buflen;
     if ( message->version == IPFIX_VERSION_NF9 )
          message->nrecords++;
@@ -716,6 +644,8 @@ int mnslp_ipfix_message::_output_array( mnslp_ipfix_template *templ,
         return -1;
     }
 
+    std::cout << "tsend:" << templ->get_tsend() << std::endl;
+
     if ( templ->get_tsend() == 0 ) {
 
          if ( _write_template( templ ) <0 )
@@ -723,7 +653,7 @@ int mnslp_ipfix_message::_output_array( mnslp_ipfix_template *templ,
     }
 
     /** get size of data set, check space
-     
+    */ 
     if ( templ->get_template_id() == message->cs_tid ) {
         newset_f = 0;
         datasetlen = 0;
@@ -737,18 +667,21 @@ int mnslp_ipfix_message::_output_array( mnslp_ipfix_template *templ,
     }
     
     for ( i=0; i<nfields; i++ ) {
+		mnslp_ipfix_field_key field_key = mnslp_ipfix_field_key(templ->get_field(i).elem->get_field_type().eno, 
+															    templ->get_field(i).elem->get_field_type().ftype);
         if ( templ->get_field(i).flength == IPFIX_FT_VARLEN ) {
-            if ( lengths[i]>254 )
+            
+            if ( g_data.get_length(field_key) > 254 )
                 datasetlen += 3;
             else
                 datasetlen += 1;
         } else {
-            if ( lengths[i] > templ->get_field(i).flength ) {
+            if ( g_data.get_length(field_key) > templ->get_field(i).flength ) {
                 errno = EINVAL;
                 return -1;
             }
         }
-        datasetlen += lengths[i];
+        datasetlen += g_data.get_length(field_key);
     }
 
     if ( (message->offset + datasetlen) > IPFIX_DEFAULT_BUFLEN ) {
@@ -777,25 +710,30 @@ int mnslp_ipfix_message::_output_array( mnslp_ipfix_template *templ,
     // insert data record
     
     for ( i=0; i<nfields; i++ ) {
+		mnslp_ipfix_field_key field_key = mnslp_ipfix_field_key(templ->get_field(i).elem->get_field_type().eno, 
+															    templ->get_field(i).elem->get_field_type().ftype);
+		
         if ( templ->get_field(i).flength == IPFIX_FT_VARLEN ) {
-            if ( lengths[i]>254 ) {
+            if ( g_data.get_length(field_key) > 254 ) {
                 *(buf+buflen) = 0xFF;
                 buflen++;
-                INSERTU16( buf+buflen, buflen, lengths[i] );
+                INSERTU16( buf+buflen, buflen, g_data.get_length(field_key) );
             }
             else {
-                *(buf+buflen) = lengths[i];
+                *(buf+buflen) = g_data.get_length(field_key);
                 buflen++;
             }
         }
-        p = (uint8_t*) fields[i];  // TODO AM : Verify if it is correct.
+        
         if ( templ->get_field(i).relay_f ) {
-            ipfix_encode_bytes( p, buf+buflen, lengths[i] ); // no encoding 
+            ipfix_encode_bytes( g_data.get_field(field_key), 
+								buf+buflen, g_data.get_length(field_key) ); // no encoding 
         }
         else {
-            templ->get_field(i).elem->encode( p, buf+buflen, lengths[i] );
+            templ->get_field(i).elem->encode( g_data.get_field(field_key), 
+											  buf+buflen, g_data.get_length(field_key) );
         }
-        buflen += lengths[i];
+        buflen += g_data.get_length(field_key);
     }
 
     message->nrecords ++;
@@ -804,7 +742,7 @@ int mnslp_ipfix_message::_output_array( mnslp_ipfix_template *templ,
     if ( message->version == IPFIX_VERSION ) {
         message->seqno ++;
     }
-    */
+    
     return 0;
 }
 
@@ -818,7 +756,7 @@ int mnslp_ipfix_message::output_array( mnslp_ipfix_template *templ,
 
 
 
-int mnslp_ipfix_message::output( mnslp_ipfix_template *templ, data_record * data )
+int mnslp_ipfix_message::output( mnslp_ipfix_template *templ, mnslp_ipfix_data_record * data )
 {
     int       i;
     va_list   args;
@@ -832,30 +770,32 @@ int mnslp_ipfix_message::output( mnslp_ipfix_template *templ, data_record * data
         errno = EINVAL;
         return -1;
     }
+    
+    if ( ( templ->get_numfields() != data->get_num_fields()) ||
+	     ( templ->get_numfields() != data->get_num_field_length()) ){
+        errno = EINVAL;
+        return -1;	
+	}
 		
-    g_data.clear();
-
+		
     /** collect pointers
-     *
+     */
     for ( i=0; i<templ->get_numfields(); i++ )
     {
-        ipfix_template_field_t field = templ->get_field(i);
-        mnslp_ipfix_field_key field_key = mnslp_ipfix_field_key(
-			((field.elem)->get_field_type()).eno, 
-			((field.elem)->get_field_type()).ftype);
-        
-        void * value = data->get_field(field_key);
-        uint16_t length = data->get_lenght(field_key);
-        
+        mnslp_ipfix_field *field = templ->get_field(i).elem;
+        mnslp_ipfix_field_key field_key = mnslp_ipfix_field_key(field->get_field_type().eno, 
+															    field->get_field_type().ftype);
+                
+        mnslp_ipfix_value_field value = data->get_field(field_key);
         g_data.insert_field(field_key, value);
         if ( templ->get_field(i).flength == IPFIX_FT_VARLEN )
-            g_data.insert_field_lenght(field_key, length);
+            g_data.insert_field_length(field_key, data->get_length(field_key));
         else
-            g_data.insert_field_lenght(field_key, templ->get_field(i).flength);
+            g_data.insert_field_length(field_key, templ->get_field(i).flength);
     }
 
     return output_array( templ, templ->get_numfields() );
-    */
+    
 }
 
 

@@ -62,30 +62,7 @@ namespace mnslp_ipfix
 #endif
 
 
-	int ipfix_encode_int( void *in, void *out, size_t len );
-
-	int ipfix_decode_int( void *in, void *out, size_t len );
-
-	int ipfix_snprint_int( char *str, size_t size, void *data, size_t len );
-
-	int ipfix_snprint_uint( char *str, size_t size, void *data, size_t len );
-
-	int ipfix_encode_bytes( void *in, void *out, size_t len );
-
-	int ipfix_decode_bytes( void *in, void *out, size_t len );
-
-	int ipfix_snprint_bytes( char *str, size_t size, void *data, size_t len );
-
-	int ipfix_snprint_string( char *str, size_t size, void *data, size_t len );
-
-	int ipfix_snprint_ipaddr( char *str, size_t size, void *data, size_t len );
-
-	int ipfix_encode_float( void *in, void *out, size_t len );
-	
-	int ipfix_decode_float( void *in, void *out, size_t len );
-
-	int ipfix_snprint_float( char *str, size_t size, void *data, size_t len );
-
+class mnslp_ipfix_value_field;
 
 class mnslp_ipfix_field
 {
@@ -94,10 +71,6 @@ class mnslp_ipfix_field
 		ipfix_field_type_t field_type;
 	
 	public:
-
-		ipfix_encode_func    encode;
-		ipfix_decode_func    decode;
-		ipfix_snprint_func   snprint;
 	
 		mnslp_ipfix_field(ipfix_field_type_t param);
 		~mnslp_ipfix_field();
@@ -109,6 +82,32 @@ class mnslp_ipfix_field
 		}
 				
 		inline ipfix_field_type_t get_field_type(){ return field_type; }
+		
+
+		int ipfix_encode_int( mnslp_ipfix_value_field &in, uint8_t *out, size_t len, bool relay_f );
+
+		int ipfix_decode_int( uint8_t *in, mnslp_ipfix_value_field *out, size_t len, bool relay_f );
+	
+		int ipfix_snprint_int( char * str, size_t size, mnslp_ipfix_value_field &in, size_t len );
+
+		int ipfix_snprint_uint( char * str, size_t size, mnslp_ipfix_value_field &in, size_t len );
+
+		int ipfix_encode_bytes( mnslp_ipfix_value_field &in, uint8_t *out, size_t len, bool relay_f );
+
+		int ipfix_decode_bytes( uint8_t *in, mnslp_ipfix_value_field *out, size_t len, bool relay_f );
+
+		int ipfix_snprint_bytes( char * str, size_t size, mnslp_ipfix_value_field &in, size_t len );
+
+		int ipfix_snprint_string( char * str, size_t size, mnslp_ipfix_value_field &in, size_t len );
+
+		int ipfix_snprint_ipaddr( char * str, size_t size, mnslp_ipfix_value_field &in, size_t len );
+
+		int ipfix_encode_float( mnslp_ipfix_value_field &in, uint8_t *out, size_t len, bool relay_f );
+	
+		int ipfix_decode_float( mnslp_ipfix_value_field &in, uint8_t *out, size_t len, bool relay_f );
+
+		int ipfix_snprint_float( char * str, size_t size, mnslp_ipfix_value_field &in, size_t len );
+		
 };
 
 
@@ -136,10 +135,21 @@ public:
 		return (eno + ftype) < (rhs.eno + rhs.ftype ); 
 	}
 
+	inline mnslp_ipfix_field_key& operator= (const mnslp_ipfix_field_key& param)
+	{
+		eno = param.eno;
+		ftype = param.ftype;
+		return *this;
+	}
+	
+	inline bool operator != (const mnslp_ipfix_field_key &rhs) const
+	{
+		return ((eno != rhs.eno) || (ftype != rhs.ftype)); 
+	}
 
 };
 
-class msnl_ipfix_value_field
+class mnslp_ipfix_value_field
 {
 
 private:
@@ -147,16 +157,22 @@ private:
 	uint16_t value16;
 	uint32_t value32;
 	uint64_t value64;
+	int length;
 	char *valuechar;
 	uint8_t *valuebyte;
 	
 public:
-	msnl_ipfix_value_field(mnslp_ipfix_field f_type, uint8_t _value8);
-	msnl_ipfix_value_field(mnslp_ipfix_field f_type, uint16_t _value16);
-	msnl_ipfix_value_field(mnslp_ipfix_field f_type, uint32_t _value32);
-	msnl_ipfix_value_field(mnslp_ipfix_field f_type, uint64_t _value64);
-	msnl_ipfix_value_field(mnslp_ipfix_field f_type, char * _valuechar, int length);
-	msnl_ipfix_value_field(mnslp_ipfix_field f_type, uint8_t * _valuebyte, int length);
+	mnslp_ipfix_value_field(mnslp_ipfix_field f_type, uint8_t _value8);
+	mnslp_ipfix_value_field(mnslp_ipfix_field f_type, uint16_t _value16);
+	mnslp_ipfix_value_field(mnslp_ipfix_field f_type, uint32_t _value32);
+	mnslp_ipfix_value_field(mnslp_ipfix_field f_type, uint64_t _value64);
+	mnslp_ipfix_value_field(mnslp_ipfix_field f_type, char * _valuechar, int _length);
+	mnslp_ipfix_value_field(mnslp_ipfix_field f_type, uint8_t * _valuebyte, int _length);
+	mnslp_ipfix_value_field(const mnslp_ipfix_value_field &param);
+	
+	~mnslp_ipfix_value_field();
+	mnslp_ipfix_value_field& operator= (const mnslp_ipfix_value_field &param);
+	
 	
 	inline uint8_t get_value_int8(){ return value8; }
 	inline uint16_t get_value_int16(){ return value16; }
@@ -167,6 +183,8 @@ public:
 	inline char * get_value_string(){ return valuechar; }
 	inline uint8_t * get_value_byte(){ return valuebyte; }
 	inline uint8_t * get_value_address(){ return valuebyte; }
+	
+	void print(void);
 	
 };
 

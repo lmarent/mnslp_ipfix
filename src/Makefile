@@ -50,8 +50,9 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am_mnslp_ipfix_OBJECTS = mnslp_ipfix_field.$(OBJEXT) \
-	mnslp_ipfix_templates.$(OBJEXT) mnslp_ipfix_message.$(OBJEXT) \
-	main.$(OBJEXT)
+	mnslp_ipfix_templates.$(OBJEXT) \
+	mnslp_ipfix_data_record.$(OBJEXT) \
+	mnslp_ipfix_message.$(OBJEXT) main.$(OBJEXT)
 mnslp_ipfix_OBJECTS = $(am_mnslp_ipfix_OBJECTS)
 mnslp_ipfix_DEPENDENCIES =
 DEFAULT_INCLUDES = -I.
@@ -200,6 +201,7 @@ top_srcdir = ..
 AUTOMAKE_OPTIONS = foreign
 mnslp_ipfix_SOURCES = mnslp_ipfix_field.cpp \
 					  mnslp_ipfix_templates.cpp \
+					  mnslp_ipfix_data_record.cpp \
 					  mnslp_ipfix_message.cpp \
 					  main.cpp
 
@@ -299,6 +301,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 include ./$(DEPDIR)/main.Po
+include ./$(DEPDIR)/mnslp_ipfix_data_record.Po
 include ./$(DEPDIR)/mnslp_ipfix_field.Po
 include ./$(DEPDIR)/mnslp_ipfix_message.Po
 include ./$(DEPDIR)/mnslp_ipfix_templates.Po

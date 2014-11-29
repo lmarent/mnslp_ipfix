@@ -28,7 +28,7 @@
 // ===========================================================
 
 #include "mnslp_ipfix_fields.h"
-
+#include <iostream>
 
 
 namespace mnslp_ipfix
@@ -36,41 +36,6 @@ namespace mnslp_ipfix
 
 mnslp_ipfix_field::mnslp_ipfix_field(ipfix_field_type_t param): field_type(param)
 {
-	    if ( param.coding == IPFIX_CODING_INT ) {
-            encode = ipfix_encode_int;
-            decode = ipfix_decode_int;
-            snprint= ipfix_snprint_int;
-        }
-        else if ( param.coding == IPFIX_CODING_UINT ) {
-            encode = ipfix_encode_int;
-            decode = ipfix_decode_int;
-            snprint= ipfix_snprint_uint;
-        }
-        else if ( param.coding == IPFIX_CODING_NTP ) {
-            encode = ipfix_encode_int;
-            decode = ipfix_decode_int;
-            snprint= ipfix_snprint_uint;
-        }
-        else if ( param.coding == IPFIX_CODING_FLOAT ) {
-            encode = ipfix_encode_float;
-            decode = ipfix_decode_float;
-            snprint= ipfix_snprint_float;
-        }
-        else if ( param.coding == IPFIX_CODING_IPADDR ) {
-            encode = ipfix_encode_bytes;
-            decode = ipfix_decode_bytes;
-            snprint= ipfix_snprint_ipaddr;
-        }
-        else if ( param.coding == IPFIX_CODING_STRING ) {
-            encode = ipfix_encode_bytes;
-            decode = ipfix_decode_bytes;
-            snprint= ipfix_snprint_string;
-        }
-        else {
-            encode = ipfix_encode_bytes;
-            decode = ipfix_decode_bytes;
-            snprint= ipfix_snprint_bytes;
-        }
 
 }
 
@@ -82,13 +47,453 @@ mnslp_ipfix_field::~mnslp_ipfix_field()
 mnslp_ipfix_field& mnslp_ipfix_field::operator= (const mnslp_ipfix_field &param)
 {
 	field_type = param.field_type;
-	encode = param.encode;
-	decode = param.decode;
-	snprint = param.snprint;
 	return *this;
 }
 
-msnl_ipfix_value_field::msnl_ipfix_value_field(mnslp_ipfix_field f_type, uint8_t _value8)
+
+/*
+ * descr: encode,decode,print funcs
+ */
+int mnslp_ipfix_field::encode_int( mnslp_ipfix_value_field &in, uint8_t *out, size_t len, bool relay_f )
+{
+
+    uint16_t      tmp16;
+    uint32_t      tmp32;
+    uint64_t      tmp64;
+	
+	if (relay_f)
+	{
+		switch ( len )
+		{
+		  case 1:
+			  o[0] = in.get_value_int8();
+			  break;
+		  case 2:
+			  tmp16 = in.get_value_int16();
+			  memcpy( out, &tmp16, len );
+			  break;
+		  case 4:
+			  tmp32 = in.get_value_int32();
+			  memcpy( out, &tmp32, len );
+			  break;
+		  case 8:
+			  tmp64 = in.get_value_int64();
+			  memcpy( out, &tmp64, len );
+			  break;
+		  default:
+			  memset( out, 0xff, len );
+			  return -1;
+		}
+		
+	}
+	else
+		switch ( len )
+		{
+		  case 1:
+			  o[0] = in.get_value_int8();
+			  break;
+		  case 2:
+			  tmp16 = in.get_value_int16();
+			  tmp16 = htons( tmp16 );
+			  memcpy( out, &tmp16, len );
+			  break;
+		  case 4:
+			  tmp32 = in.get_value_int32();
+			  tmp32 = htonl( tmp32 );
+			  memcpy( out, &tmp32, len );
+			  break;
+		  case 8:
+			  tmp64 = in.get_value_int64();
+			  tmp64 = HTONLL( tmp64 );
+			  memcpy( out, &tmp64, len );
+			  break;
+		  default:
+			  memset( out, 0xff, len );
+			  return -1;
+		}
+    return 0;
+}
+
+int mnslp_ipfix_field::decode_int( uint8_t *in, mnslp_ipfix_value_field *out, size_t len, bool relay_f )
+{
+    unsigned char *i = (unsigned char*) in;
+    unsigned char *o = (unsigned char*) out;
+    uint16_t      tmp16;
+    uint32_t      tmp32;
+    uint64_t      tmp64;
+
+    if (relay_f)
+    {
+		switch ( len )
+		{
+		  case 1:
+			  mnslp_ipfix_value_field value = mnslp_ipfix_value_field(this, in[0]);
+			  break;
+		  case 2:
+			  memcpy( &tmp16, in, len );
+			  mnslp_ipfix_value_field value = mnslp_ipfix_value_field(this, tmp16);
+			  break;
+		  case 4:
+			  memcpy( &tmp32, i, len );
+			  mnslp_ipfix_value_field value = mnslp_ipfix_value_field(this, tmp32);
+			  break;
+		  case 8:
+			  memcpy( &tmp64, i, len );
+			  mnslp_ipfix_value_field value = mnslp_ipfix_value_field(this, tmp64);
+			  break;
+		  default:
+			  mnslp_ipfix_value_field value = mnslp_ipfix_value_field(this, 0);
+			  return -1;
+		}
+	}
+	else
+	{
+		switch ( len )
+		{
+		  case 1:
+			  mnslp_ipfix_value_field value = mnslp_ipfix_value_field(this, in[0]);
+			  break;
+		  case 2:
+			  memcpy( &tmp16, i, len );
+			  tmp16 = ntohs( tmp16 );
+			  mnslp_ipfix_value_field value = mnslp_ipfix_value_field(this, tmp16);
+			  break;
+		  case 4:
+			  memcpy( &tmp32, i, len );
+			  tmp32 = ntohl( tmp32 );
+			  mnslp_ipfix_value_field value = mnslp_ipfix_value_field(this, tmp32);
+			  break;
+		  case 8:
+			  memcpy( &tmp64, i, len );
+			  tmp64 = NTOHLL( tmp64 );
+			  mnslp_ipfix_value_field value = mnslp_ipfix_value_field(this, tmp64);
+			  break;
+		  default:
+			  mnslp_ipfix_value_field value = mnslp_ipfix_value_field(this, 0);
+			  return -1;	
+		}
+	}
+	*out = value;
+    return 0;
+}
+
+int mnslp_ipfix_field::snprint_int( char *str, size_t size, mnslp_ipfix_value_field &in, size_t len )
+{
+    int8_t       tmp8;
+    int16_t      tmp16;
+    int32_t      tmp32;
+    int64_t      tmp64;
+
+    switch ( len ) {
+      case 1:
+          return snprintf( str, size, "%d", in.get_value_int8() );
+      case 2:
+          return snprintf( str, size, "%d", in.get_value_int16() );
+      case 4:
+          return snprintf( str, size, "%d", in.get_value_int32() );
+      case 8:
+          return snprintf( str, size, "%lld", (long long int) in.get_value_int64() );
+      default:
+          break;
+    }
+    return snprintf( str, size, "err" );
+}
+
+int mnslp_ipfix_field::snprint_uint( char *str, size_t size, mnslp_ipfix_value_field &in, size_t len )
+{
+    uint8_t       tmp8;
+    uint16_t      tmp16;
+    uint32_t      tmp32;
+    uint64_t      tmp64;
+
+    switch ( len ) {
+      case 1:
+          return snprintf( str, size, "%u", in.get_value_int8() );
+      case 2:
+          return snprintf( str, size, "%u", in.get_value_int16() );
+      case 4:
+          return snprintf( str, size, "%u", (unsigned int)in.get_value_int32());
+      case 8:
+          return snprintf( str, size, "%llu", (long long unsigned int)in.get_value_int64() );
+      default:
+          break;
+    }
+    return snprintf( str, size, "err" );
+}
+
+int mnslp_ipfix_field::encode_bytes( mnslp_ipfix_value_field &in, uint8_t *out, size_t len, bool relay_f  )
+{
+    memcpy( out, in.get_value_byte(), len );
+    return 0;
+}
+
+int mnslp_ipfix_field::decode_bytes( uint8_t *in, mnslp_ipfix_value_field *out, size_t len, bool relay_f )
+{
+    *out = mnslp_ipfix_value_field(this, in, (int) len);     
+    return 0;
+}
+
+int mnslp_ipfix_field::snprint_bytes( char * str, size_t size, mnslp_ipfix_value_field &in, size_t len )
+{
+    size_t  i, n = 0;
+    uint8_t *in = in.get_value_byte();
+
+    if ( size < 4 )
+        return snprintf( str, size, "err" );
+
+    while ( ((len*2) + 2) > size )
+        len--;
+
+    sprintf( str, "0x" );
+    n = 2;
+    for( i=0; i<len; i++ ) {
+        sprintf( str+n, "%02x", *in );
+        n += 2;
+        in++;
+    }
+    return n;
+}
+
+int mnslp_ipfix_field::snprint_string( char * str, size_t size, mnslp_ipfix_value_field &in, size_t len )
+{
+    ssize_t  i;
+    uint8_t *in = in.get_value_string();
+
+    for( i=len-1; i>=0; i-- ) {
+        if ( in[i] == '\0' ) {
+            return snprintf( str, size, "%s", in );
+        }
+    }
+
+    if ( len < size ) {
+        memcpy( str, in, len );
+        str[len] = '\0';
+        return len;
+    }
+
+    return snprintf( str, size, "err" );
+}
+
+int mnslp_ipfix_field::snprint_ipaddr( char * str, size_t size, mnslp_ipfix_value_field &in, size_t len )
+{
+    uint8_t *in = in.get_value_address();
+    char    tmpbuf[100];
+
+    switch ( len ) {
+      case 4:
+          return snprintf( str, size, "%u.%u.%u.%u",
+                           in[0], in[1], in[2], in[3] );
+      case 16:
+      {
+          /** change this!
+           */
+          uint16_t  i, tmp16;
+
+          for( i=0, *tmpbuf=0; i<16; i+=2 ) {
+              memcpy( &tmp16, (char*)data+i, 2 );
+              tmp16 = htons( tmp16 );
+              sprintf( tmpbuf+strlen(tmpbuf), "%s%x", i?":":"", tmp16 );
+          }
+          return snprintf( str, size, "%s", tmpbuf );
+      }
+
+      default:
+          return ipfix_snprint_bytes( str, size, in, len );
+    }
+}
+
+int mnslp_ipfix_field::encode_float( mnslp_ipfix_value_field &in, uint8_t *out, size_t len, bool relay_f )
+{
+    uint32_t      tmp32;
+    uint64_t      tmp64;
+
+    if (relay_f)
+    {
+		switch ( len ) {
+		  case 4:
+			  tmp32 = in.get_value_float32();
+			  memcpy( out, &tmp32, len );
+			  break;
+		  case 8:
+			  tmp64 = in.get_value_float64();
+			  memcpy( out, &tmp64, len );
+			  break;
+		  default:
+			  memset( out, 0xff, len );
+			  return -1;
+		}
+
+	}
+	else
+	{
+		switch ( len ) {
+		  case 4:
+			  tmp32 = in.get_value_float32();
+			  tmp32 = htonl( tmp32 );
+			  memcpy( out, &tmp32, len );
+			  break;
+		  case 8:
+			  tmp64 = in.get_value_float64();
+			  tmp64 = HTONLL( tmp64 );
+			  memcpy( out, &tmp64, len );
+			  break;
+		  default:
+			  memset( out, 0xff, len );
+			  return -1;
+		}
+	}
+    return 0;
+}
+
+int mnslp_ipfix_field::decode_float( uint8_t *in,  mnslp_ipfix_value_field *out , size_t len, bool relay_f )
+{
+    uint32_t      tmp32;
+    uint64_t      tmp64;
+
+    if (relay_f)
+    {
+		switch ( len ) {
+		  case 4:
+			  memcpy( &tmp32, in, len );
+			  mnslp_ipfix_value_field value = mnslp_ipfix_value_field(this, tmp32);
+			  break;
+		  case 8:
+			  memcpy( &tmp64, in, len );
+			  mnslp_ipfix_value_field value = mnslp_ipfix_value_field(this, tmp64);
+			  break;
+		  default:
+			  mnslp_ipfix_value_field value = mnslp_ipfix_value_field(this, 0);
+			  return -1;
+		}
+
+	}
+	else
+	{
+		switch ( len ) {
+		  case 4:
+			  memcpy( &tmp32, i, len );
+			  tmp32 = ntohl( tmp32 );
+			  mnslp_ipfix_value_field value = mnslp_ipfix_value_field(this, tmp32);
+			  break;
+		  case 8:
+			  memcpy( &tmp64, i, len );
+			  tmp64 = NTOHLL( tmp64 );
+			  mnslp_ipfix_value_field value = mnslp_ipfix_value_field(this, tmp64);
+			  break;
+		  default:
+			  mnslp_ipfix_value_field value = mnslp_ipfix_value_field(this, 0);
+			  return -1;	
+		}
+	}
+    *out = value;
+    return 0;
+
+}
+
+int mnslp_ipfix_field::snprint_float( char * str, size_t size, mnslp_ipfix_value_field &in, size_t len )
+{
+    //float tmp32;
+    //double tmp64;
+
+    switch ( len ) {
+      case 4:
+          //ipfix_decode_float( data, &tmp32, 4);
+          return snprintf( str, size, "%f", *(float*)in.get_value_float32() );
+      case 8:
+          //ipfix_decode_float( data, &tmp64, 8);
+          return snprintf( str, size, "%lf", *(double*)in.get_value_float64());
+      default:
+          break;
+    }
+
+    return snprintf( str, size, "err" );
+}
+
+int mnslp_ipfix_field::encode( mnslp_ipfix_value_field &in, 
+							   uint8_t *out, size_t len, bool relay_f)
+{
+	 if ( field_type.coding == IPFIX_CODING_INT ) {
+         ipfix_encode_int(in, out, len, relay_f);
+     }
+     else if ( field_type.coding == IPFIX_CODING_UINT ) {
+         ipfix_encode_int((in, out, len, relay_f);
+     }
+     else if ( field_type.coding == IPFIX_CODING_NTP ) {
+         ipfix_encode_int(in, out, len, relay_f);
+     }
+     else if ( field_type.coding == IPFIX_CODING_FLOAT ) {
+         ipfix_encode_float(in, out, len, relay_f);
+     }
+     else if ( field_type.coding == IPFIX_CODING_IPADDR ) {
+         ipfix_encode_bytes(in, out, len, relay_f);
+     }
+     else if ( field_type.coding == IPFIX_CODING_STRING ) {
+         ipfix_encode_bytes(in, out, len, relay_f);
+     }
+     else {
+         ipfix_encode_bytes(in, out, len, relay_f);
+     }
+
+}
+
+int mnslp_ipfix_field::decode( mnslp_ipfix_value_field &in, 
+							   uint8_t *out, size_t len, bool relay_f)
+{
+	    if ( field_type.coding == IPFIX_CODING_INT ) {
+            ipfix_decode_int(in, out, len, relay_f);
+        }
+        else if ( field_type.coding == IPFIX_CODING_UINT ) {
+            ipfix_decode_int(in, out, len, relay_f);
+        }
+        else if ( field_type.coding == IPFIX_CODING_NTP ) {
+            ipfix_decode_int(in, out, len, relay_f);
+        }
+        else if ( field_type.coding == IPFIX_CODING_FLOAT ) {
+            ipfix_decode_float(in, out, len, relay_f);
+        }
+        else if ( field_type.coding == IPFIX_CODING_IPADDR ) {
+            ipfix_decode_bytes(in, out, len, relay_f);
+        }
+        else if ( field_type.coding == IPFIX_CODING_STRING ) {
+            ipfix_decode_bytes(in, out, len, relay_f);
+        }
+        else {
+            ipfix_decode_bytes(in, out, len, relay_f);
+        }
+
+}
+
+int mnslp_ipfix_field::snprint( mnslp_ipfix_value_field &in, 
+								size_t size, void *data, size_t len, bool relay_f)
+{
+	    if ( field_type.coding == IPFIX_CODING_INT ) {
+            ipfix_snprint_int(in,size,data, len, relay_f);
+        }
+        else if ( field_type.coding == IPFIX_CODING_UINT ) {
+            ipfix_snprint_uint(in,size,data, len, relay_f);
+        }
+        else if ( field_type.coding == IPFIX_CODING_NTP ) {
+            ipfix_snprint_uint(in,size,data, len, relay_f);
+        }
+        else if ( field_type.coding == IPFIX_CODING_FLOAT ) {
+            ipfix_snprint_float(in,size,data, len, relay_f);
+        }
+        else if ( field_type.coding == IPFIX_CODING_IPADDR ) {
+            ipfix_snprint_ipaddr(in,size,data, len, relay_f);
+        }
+        else if ( field_type.coding == IPFIX_CODING_STRING ) {
+            ipfix_snprint_string(in,size,data, len, relay_f);
+        }
+        else {
+            ipfix_snprint_bytes(in,size,data, len, relay_f);
+        }
+
+}
+
+	
+
+mnslp_ipfix_value_field::mnslp_ipfix_value_field(mnslp_ipfix_field f_type, uint8_t _value8):
+valuebyte(NULL), valuechar(NULL), length(0), value16(0), value32(0), value64(0)
 { 
 	if (f_type.get_field_type().length == 1)
 		value8 = _value8; 
@@ -96,7 +501,8 @@ msnl_ipfix_value_field::msnl_ipfix_value_field(mnslp_ipfix_field f_type, uint8_t
 		throw mnslp_ipfix_bad_argument("Value does not agree with Field Type");
 }
 
-msnl_ipfix_value_field::msnl_ipfix_value_field(mnslp_ipfix_field f_type, uint16_t _value16)
+mnslp_ipfix_value_field::mnslp_ipfix_value_field(mnslp_ipfix_field f_type, uint16_t _value16):
+valuebyte(NULL), valuechar(NULL), length(0), value8(0), value32(0), value64(0)
 { 
 	if (f_type.get_field_type().length == 2)
 		value16 = _value16; 
@@ -105,7 +511,8 @@ msnl_ipfix_value_field::msnl_ipfix_value_field(mnslp_ipfix_field f_type, uint16_
 		
 }
 
-msnl_ipfix_value_field::msnl_ipfix_value_field(mnslp_ipfix_field f_type, uint32_t _value32)
+mnslp_ipfix_value_field::mnslp_ipfix_value_field(mnslp_ipfix_field f_type, uint32_t _value32):
+valuebyte(NULL), valuechar(NULL), length(0), value8(0), value16(0), value64(0)
 { 
 	if (f_type.get_field_type().length == 4)
 		value32 = _value32; 
@@ -113,7 +520,8 @@ msnl_ipfix_value_field::msnl_ipfix_value_field(mnslp_ipfix_field f_type, uint32_
 		throw mnslp_ipfix_bad_argument("Value does not agree with Field Type");
 }
 
-msnl_ipfix_value_field::msnl_ipfix_value_field(mnslp_ipfix_field f_type, uint64_t _value64)
+mnslp_ipfix_value_field::mnslp_ipfix_value_field(mnslp_ipfix_field f_type, uint64_t _value64):
+valuebyte(NULL), valuechar(NULL), length(0), value8(0), value16(0), value32(0)
 { 
 	if (f_type.get_field_type().length == 8)
 		value64 = _value64; 
@@ -122,17 +530,17 @@ msnl_ipfix_value_field::msnl_ipfix_value_field(mnslp_ipfix_field f_type, uint64_
 		
 }
 
-
-msnl_ipfix_value_field::msnl_ipfix_value_field(mnslp_ipfix_field f_type, 
-					uint8_t * _valuebyte, int lenght)
-{
-	
+mnslp_ipfix_value_field::mnslp_ipfix_value_field(mnslp_ipfix_field f_type, 
+					uint8_t * _valuebyte, int _length):
+valuechar(NULL), value8(0), value16(0), value32(0), value64(0)
+{	
     if ( f_type.get_field_type().coding == IPFIX_CODING_IPADDR ) 
     {
-		if (f_type.get_field_type().length == lenght){
-			valuebyte = new uint8_t[lenght];
-			for (int i=0; i<lenght; i++)
+		if (f_type.get_field_type().length == _length){
+			valuebyte = (uint8_t*) malloc(sizeof(uint8_t) * _length);
+			for (int i=0; i< _length; i++)
 				valuebyte[i] = _valuebyte[i];
+			length = _length;
 		}
 		else
 		{
@@ -141,15 +549,17 @@ msnl_ipfix_value_field::msnl_ipfix_value_field(mnslp_ipfix_field f_type,
 	}
     else if ( f_type.get_field_type().coding == IPFIX_CODING_BYTES )
     {
-		if (f_type.get_field_type().length == lenght){
-			valuebyte = new uint8_t[lenght];
-			for (int i=0; i<lenght; i++)
+		if (f_type.get_field_type().length == _length){
+			valuebyte = (uint8_t*) malloc(sizeof(uint8_t) * _length);
+			for (int i=0; i < _length; i++)
 				valuebyte[i] = _valuebyte[i];
+			length = _length;
 		}
 		else if (f_type.get_field_type().length == 65535 ){
-			valuebyte = new uint8_t[lenght];
-			for (int i=0; i<lenght; i++)
+			valuebyte = (uint8_t*) malloc(sizeof(uint8_t) * _length);
+			for (int i=0; i < _length; i++)
 				valuebyte[i] = _valuebyte[i];
+			length = _length;
 		}
 		else
 		{
@@ -162,13 +572,15 @@ msnl_ipfix_value_field::msnl_ipfix_value_field(mnslp_ipfix_field f_type,
 	}	
 }
 
-msnl_ipfix_value_field::msnl_ipfix_value_field(mnslp_ipfix_field f_type, 
-					char * _valuechar, int lenght)
+mnslp_ipfix_value_field::mnslp_ipfix_value_field(mnslp_ipfix_field f_type, 
+					char * _valuechar, int _length):
+valuebyte(NULL), value8(0), value16(0), value32(0), value64(0)
 {
-	
+		
     if ( f_type.get_field_type().coding== IPFIX_CODING_STRING ) {
-		valuechar = new char[lenght];
-		memcpy ( valuechar, _valuechar, lenght );
+		valuechar = (char *)malloc(sizeof(char *) * _length);
+		memcpy ( valuechar, _valuechar, _length );
+		length = _length;
     }
     else
     {
@@ -176,7 +588,109 @@ msnl_ipfix_value_field::msnl_ipfix_value_field(mnslp_ipfix_field f_type,
 	}	
 }
 
+mnslp_ipfix_value_field::~mnslp_ipfix_value_field()
+{
+	if (valuechar != NULL)
+		free( valuechar );
+	
+	if ( valuebyte != NULL )
+		free( valuebyte );
 
+}
+
+mnslp_ipfix_value_field::mnslp_ipfix_value_field(const mnslp_ipfix_value_field &param)
+{
+	
+	value8 = param.value8;
+	value16 = param.value16;
+	value32 = param.value32;
+	value64 = param.value64;
+	length = param.length;
+	
+	if ((param.valuechar != NULL) && (param.length > 0))
+	{
+		valuechar = (char *)malloc(sizeof(char *) * param.length);
+		length = param.length;
+		for (int i=0; i < param.length; i++)
+			valuechar[i] = param.valuechar[i];
+	}
+	else
+	{
+		valuechar = NULL;
+	}
+	
+	if ((param.valuebyte != NULL) && (param.length > 0) )
+	{
+		valuebyte = (uint8_t*)malloc(sizeof(uint8_t) * param.length);
+		length = param.length;
+		for (int i=0; i < param.length; i++)
+			valuebyte[i] = param.valuebyte[i];
+	}
+	else
+	{
+		valuebyte = NULL;
+	}
+
+}
+
+mnslp_ipfix_value_field& mnslp_ipfix_value_field::operator= (const mnslp_ipfix_value_field &param)
+{
+	
+	std::cout << "estoy en operator=" << std::endl  << std::flush;
+	
+	value8 = param.value8;
+	value16 = param.value16;
+	value32 = param.value32;
+	value64 = param.value64;
+	length = param.length;
+	
+	if ((param.valuechar != NULL) && (param.length > 0))
+	{
+		valuechar = (char *)malloc(sizeof(char *) * param.length);
+		length = param.length;
+		for (int i=0; i < param.length; i++)
+			valuechar[i] = param.valuechar[i];
+	}
+	else
+	{
+		valuechar = NULL;
+	}
+	
+	if ((param.valuebyte != NULL) && (param.length > 0))
+	{
+		valuebyte = (uint8_t*)malloc(sizeof(uint8_t) * param.length);
+		length = param.length;
+		for (int i=0; i < param.length; i++)
+			valuebyte[i] = param.valuebyte[i];
+	}
+	else
+	{
+		valuebyte = NULL;
+	}
+}
+
+void mnslp_ipfix_value_field::print(void)
+{
+	std::cout << "value field 8:" << value8 << std::endl;
+	std::cout << "value field 16:" << value16 << std::endl;
+	std::cout << "value field 32:" << value32 << std::endl;
+	std::cout << "value field 64:" << value64 << std::endl;
+	std::cout << "value length:" << length << std::endl;
+	
+	if (valuechar != NULL )
+	{
+		for (int i=0; i < length; i++)
+			std::cout << valuechar[i];
+	}
+	
+	if (valuebyte != NULL )
+	{
+		
+		for (int i=0; i < length; i++)
+			std::cout << valuebyte[i];
+	}
+	
+}
 
 msnlp_ipfix_field_container::msnlp_ipfix_field_container()
 {
@@ -1100,270 +1614,8 @@ mnslp_ipfix_field * msnlp_ipfix_field_container::get_field( int eno, int type )
         if( ((it->get_field_type()).ftype == type) && ((it->get_field_type()).eno==eno) )
 			return &(*it);
 	}
-    return NULL;
+    throw mnslp_ipfix_bad_argument("Field not found in the container");
 }
 
-/*
- * descr: encode,decode,print funcs
- */
-int ipfix_encode_int( void *in, void *out, size_t len )
-{
-    unsigned char *i = (unsigned char*) in;
-    unsigned char *o = (unsigned char*) out;
-    uint16_t      tmp16;
-    uint32_t      tmp32;
-    uint64_t      tmp64;
 
-    switch ( len )
-    {
-      case 1:
-          o[0] = i[0];
-          break;
-      case 2:
-          memcpy( &tmp16, i, len );
-          tmp16 = htons( tmp16 );
-          memcpy( out, &tmp16, len );
-          break;
-      case 4:
-          memcpy( &tmp32, i, len );
-          tmp32 = htonl( tmp32 );
-          memcpy( out, &tmp32, len );
-          break;
-      case 8:
-          memcpy( &tmp64, i, len );
-          tmp64 = HTONLL( tmp64 );
-          memcpy( out, &tmp64, len );
-          break;
-      default:
-          memset( out, 0xff, len );
-          return -1;
-    }
-    return 0;
-}
-
-int ipfix_decode_int( void *in, void *out, size_t len )
-{
-    unsigned char *i = (unsigned char*) in;
-    unsigned char *o = (unsigned char*) out;
-    uint16_t      tmp16;
-    uint32_t      tmp32;
-    uint64_t      tmp64;
-
-    switch ( len )
-    {
-      case 1:
-          o[0] = i[0];
-          break;
-      case 2:
-          memcpy( &tmp16, i, len );
-          tmp16 = ntohs( tmp16 );
-          memcpy( out, &tmp16, len );
-          break;
-      case 4:
-          memcpy( &tmp32, i, len );
-          tmp32 = ntohl( tmp32 );
-          memcpy( out, &tmp32, len );
-          break;
-      case 8:
-          memcpy( &tmp64, i, len );
-          tmp64 = NTOHLL( tmp64 );
-          memcpy( out, &tmp64, len );
-          break;
-      default:
-          memset( out, 0xff, len );
-          return -1;
-    }
-    return 0;
-}
-
-int ipfix_snprint_int( char *str, size_t size, void *data, size_t len )
-{
-    int8_t       tmp8;
-    int16_t      tmp16;
-    int32_t      tmp32;
-    int64_t      tmp64;
-
-    switch ( len ) {
-      case 1:
-          memcpy( &tmp8, data, len );
-          return snprintf( str, size, "%d", tmp8 );
-      case 2:
-          memcpy( &tmp16, data, len );
-          //tmp16 = ntohs( tmp16 );
-          return snprintf( str, size, "%d", tmp16 );
-      case 4:
-          memcpy( &tmp32, data, len );
-          //tmp32 = ntohl( tmp32 );
-          return snprintf( str, size, "%d", (int)tmp32 );
-      case 8:
-          memcpy( &tmp64, data, len );
-          //tmp64 = NTOHLL( tmp64 );
-          return snprintf( str, size, "%lld", (long long int)tmp64 );
-      default:
-          break;
-    }
-    return snprintf( str, size, "err" );
-}
-
-int ipfix_snprint_uint( char *str, size_t size, void *data, size_t len )
-{
-    uint8_t       tmp8;
-    uint16_t      tmp16;
-    uint32_t      tmp32;
-    uint64_t      tmp64;
-
-    switch ( len ) {
-      case 1:
-          memcpy( &tmp8, data, len );
-          return snprintf( str, size, "%u", tmp8 );
-      case 2:
-          memcpy( &tmp16, data, len );
-          //tmp16 = htons( tmp16 );
-          return snprintf( str, size, "%u", tmp16 );
-      case 4:
-          memcpy( &tmp32, data, len );
-          //tmp32 = htonl( tmp32 );
-          return snprintf( str, size, "%u", (unsigned int)tmp32 );
-      case 8:
-          memcpy( &tmp64, data, len );
-          //tmp64 = HTONLL( tmp64 );
-          return snprintf( str, size, "%llu", (long long unsigned int)tmp64 );
-      default:
-          break;
-    }
-    return snprintf( str, size, "err" );
-}
-
-int ipfix_encode_bytes( void *in, void *out, size_t len )
-{
-    if ( in != out )
-        memcpy( out, in, len );
-    return 0;
-}
-
-int ipfix_decode_bytes( void *in, void *out, size_t len )
-{
-    if ( in != out )
-        memcpy( out, in, len );
-    return 0;
-}
-
-int ipfix_snprint_bytes( char *str, size_t size, void *data, size_t len )
-{
-    size_t  i, n = 0;
-    uint8_t *in = (uint8_t*) data;
-
-    if ( size < 4 )
-        return snprintf( str, size, "err" );
-
-    while ( ((len*2) + 2) > size )
-        len--;
-
-    sprintf( str, "0x" );
-    n = 2;
-    for( i=0; i<len; i++ ) {
-        sprintf( str+n, "%02x", *in );
-        n += 2;
-        in++;
-    }
-    return n;
-}
-
-int ipfix_snprint_string( char *str, size_t size, void *data, size_t len )
-{
-    ssize_t  i;
-    uint8_t *in = (uint8_t*) data;
-
-    for( i=len-1; i>=0; i-- ) {
-        if ( in[i] == '\0' ) {
-            return snprintf( str, size, "%s", in );
-        }
-    }
-
-    if ( len < size ) {
-        memcpy( str, in, len );
-        str[len] = '\0';
-        return len;
-    }
-
-    return snprintf( str, size, "err" );
-}
-
-int ipfix_snprint_ipaddr( char *str, size_t size, void *data, size_t len )
-{
-    uint8_t *in = (uint8_t*)data;
-    char    tmpbuf[100];
-
-    switch ( len ) {
-      case 4:
-          return snprintf( str, size, "%u.%u.%u.%u",
-                           in[0], in[1], in[2], in[3] );
-      case 16:
-      {
-          /** change this!
-           */
-          uint16_t  i, tmp16;
-
-          for( i=0, *tmpbuf=0; i<16; i+=2 ) {
-              memcpy( &tmp16, (char*)data+i, 2 );
-              tmp16 = htons( tmp16 );
-              sprintf( tmpbuf+strlen(tmpbuf), "%s%x", i?":":"", tmp16 );
-          }
-          return snprintf( str, size, "%s", tmpbuf );
-      }
-
-      default:
-          return ipfix_snprint_bytes( str, size, data, len );
-    }
-}
-
-int ipfix_encode_float( void *in, void *out, size_t len )
-{
-    uint32_t      tmp32;
-    uint64_t      tmp64;
-
-    switch ( len ) {
-      case 4:
-          memcpy( &tmp32, in, len );
-          tmp32 = htonl( tmp32 );
-          memcpy( out, &tmp32, len );
-          break;
-      case 8:
-          memcpy( &tmp64, in, len );
-          tmp64 = HTONLL( tmp64 );
-          memcpy( out, &tmp64, len );
-          break;
-      default:
-          memset( out, 0xff, len );
-          return -1;
-    }
-
-    return 0;
-}
-
-int ipfix_decode_float( void *in, void *out, size_t len )
-{
-    return ipfix_encode_float( in, out, len );
-}
-
-int ipfix_snprint_float( char *str, size_t size, void *data, size_t len )
-{
-    //float tmp32;
-    //double tmp64;
-
-    switch ( len ) {
-      case 4:
-          //ipfix_decode_float( data, &tmp32, 4);
-          return snprintf( str, size, "%f", *(float*)data );
-      case 8:
-          //ipfix_decode_float( data, &tmp64, 8);
-          return snprintf( str, size, "%lf", *(double*)data);
-      default:
-          break;
-    }
-
-    return snprintf( str, size, "err" );
-}
-
-	
 }

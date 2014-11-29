@@ -9,6 +9,8 @@
 
 #include "ipfix_def.h"
 #include "mnslp_ipfix_message.h"
+#include "mnslp_ipfix_data_record.h"
+
 
 using namespace mnslp_ipfix;
 
@@ -16,7 +18,7 @@ using namespace mnslp_ipfix;
 class Mnslp_Ipfix_Message_Test : public CppUnit::TestFixture {
 
 	CPPUNIT_TEST_SUITE( Mnslp_Ipfix_Message_Test );
-	// CPPUNIT_TEST( testAddTemplate );
+	CPPUNIT_TEST( testAddTemplate );
 	CPPUNIT_TEST( testDeleteTemplate );
 	//CPPUNIT_TEST_EXCEPTION( testException, mnslp_ipfix_bad_argument );
 
@@ -48,10 +50,8 @@ void Mnslp_Ipfix_Message_Test::testAddTemplate()
 	mnslp_ipfix_template *templscope2=NULL;
 	int nfields = 3;
 	int result;
-	data_record data;
-	char   buf[31]  = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
-                           11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-                           21, 22, 23, 24, 25, 26, 27, 28, 29, 30 };
+	mnslp_ipfix_data_record data;
+	uint8_t   buf[5]  = { 1, 2, 3, 4 };
 
 	// Verifies that a data field cannot be added to a empty template
 	result = mes->add_field(templdata, 0, IPFIX_FT_SOURCEIPV4ADDRESS, 4);
@@ -81,8 +81,10 @@ void Mnslp_Ipfix_Message_Test::testAddTemplate()
 	// Verifies the method delete template, second it verifies with a valid template
 	mes->delete_template(templscope);
 	
-	data.insert_field(0, IPFIX_FT_SOURCEIPV4ADDRESS, (void *) buf);
-	data.insert_field_lenght(0, IPFIX_FT_SOURCEIPV4ADDRESS, 4);
+	mnslp_ipfix_field *ptrField1 = mes->get_field_definition( 0, IPFIX_FT_SOURCEIPV4ADDRESS );
+	mnslp_ipfix_value_field fvalue3 = mnslp_ipfix_value_field(*ptrField1, (uint8_t *) buf, 4);
+	data.insert_field(0, IPFIX_FT_SOURCEIPV4ADDRESS, fvalue3);
+	data.insert_field_length(0, IPFIX_FT_SOURCEIPV4ADDRESS, 4);
 	
 	mes->output(templdata, &data);
 	std::cout << "output" << result << std::endl;
