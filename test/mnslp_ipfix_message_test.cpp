@@ -82,7 +82,7 @@ void Mnslp_Ipfix_Message_Test::testAddTemplate()
 	mes->delete_template(templscope);
 	
 	mnslp_ipfix_field *ptrField1 = mes->get_field_definition( 0, IPFIX_FT_SOURCEIPV4ADDRESS );
-	mnslp_ipfix_value_field fvalue3 = mnslp_ipfix_value_field(*ptrField1, (uint8_t *) buf, 4);
+	mnslp_ipfix_value_field fvalue3 = ptrField1->get_ipfix_value_field( (uint8_t *) buf, 4);
 	data.insert_field(0, IPFIX_FT_SOURCEIPV4ADDRESS, fvalue3);
 	data.insert_field_length(0, IPFIX_FT_SOURCEIPV4ADDRESS, 4);
 	

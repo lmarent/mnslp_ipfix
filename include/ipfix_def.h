@@ -52,9 +52,7 @@
 
 #define REV_PEN 29305 /* reverse elements private enterprise number, see RFC5103 */
 
-typedef int (*ipfix_encode_func) (void *, void*, std::size_t);
-typedef int (*ipfix_decode_func) (void *, void*, std::size_t);
-typedef int (*ipfix_snprint_func) (char *, size_t, void*, std::size_t);
+
 
 typedef struct
 {

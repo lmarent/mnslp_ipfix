@@ -28,6 +28,7 @@ int main ( int argc, char **argv )
 	uint32_t value32 = 3;	
 	uint8_t valuebyte0[5] = "1234";
 	int num_fields = 0;
+	char output[2000];
                            
 
 	mnslp_ipfix_message message = mnslp_ipfix_message(sourceid, IPFIX_VERSION);
@@ -37,7 +38,15 @@ int main ( int argc, char **argv )
 	
 
 	mnslp_ipfix_field *ptrField1 = message.get_field_definition( 0, IPFIX_FT_SOURCEIPV4ADDRESS );
-	mnslp_ipfix_value_field fvalue3 = mnslp_ipfix_value_field(*ptrField1, (uint8_t *) buf, 4);
+	mnslp_ipfix_value_field fvalue3 = ptrField1->get_ipfix_value_field((uint8_t *) buf, 4);
+	
+	
+	
+	std::cout << "voy" << fvalue3.getLength() << std::endl;
+	ptrField1->ipfix_snprint_bytes( output, (size_t) 1999, fvalue3, fvalue3.getLength() );
+	std::cout << output << std::endl;
+	
+	
 	data.insert_field(0, IPFIX_FT_SOURCEIPV4ADDRESS, fvalue3);
 	data.insert_field_length(0, IPFIX_FT_SOURCEIPV4ADDRESS, 4);
 	

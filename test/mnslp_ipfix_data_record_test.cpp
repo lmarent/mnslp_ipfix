@@ -85,19 +85,19 @@ void Mnslp_Ipfix_Data_Record_Test::testAssign()
 
 	// Int 1
 	ptrField1 = field_container.get_field( 0, IPFIX_FT_IGMPTYPE );
-	mnslp_ipfix_value_field fvalue1 = mnslp_ipfix_value_field(*ptrField1, value8);
+	mnslp_ipfix_value_field fvalue1 = ptrField1->get_ipfix_value_field(value8);
 	data.insert_field(0, IPFIX_FT_IGMPTYPE, fvalue1);
 	data.insert_field_length(0, IPFIX_FT_IGMPTYPE, 1);
 	
 	// Int 4
 	ptrField2 = field_container.get_field( 0, IPFIX_FT_INGRESSINTERFACE );
-	mnslp_ipfix_value_field fvalue2 = mnslp_ipfix_value_field(*ptrField2, value32);
+	mnslp_ipfix_value_field fvalue2 = ptrField2->get_ipfix_value_field(value32);
 	data.insert_field(0, IPFIX_FT_INGRESSINTERFACE, fvalue2);
 	data.insert_field_length(0, IPFIX_FT_INGRESSINTERFACE, 4);
 
     //Address 4
 	ptrField3 = field_container.get_field( 0, IPFIX_FT_SOURCEIPV4ADDRESS );
-	mnslp_ipfix_value_field fvalue3 = mnslp_ipfix_value_field(*ptrField3, (uint8_t *) valuebyte0, 4);
+	mnslp_ipfix_value_field fvalue3 = ptrField3->get_ipfix_value_field((uint8_t *) valuebyte0, 4);
 	data.insert_field(0, IPFIX_FT_SOURCEIPV4ADDRESS, fvalue3);
 	data.insert_field_length(0, IPFIX_FT_SOURCEIPV4ADDRESS, 4);
 

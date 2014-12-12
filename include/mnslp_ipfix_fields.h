@@ -84,30 +84,44 @@ class mnslp_ipfix_field
 		inline ipfix_field_type_t get_field_type(){ return field_type; }
 		
 
-		int ipfix_encode_int( mnslp_ipfix_value_field &in, uint8_t *out, size_t len, bool relay_f );
+		int ipfix_encode_int( mnslp_ipfix_value_field &in, uint8_t *out, int relay_f );
 
-		int ipfix_decode_int( uint8_t *in, mnslp_ipfix_value_field *out, size_t len, bool relay_f );
+		mnslp_ipfix_value_field ipfix_decode_int( uint8_t *in, size_t len, int relay_f );
 	
 		int ipfix_snprint_int( char * str, size_t size, mnslp_ipfix_value_field &in, size_t len );
 
 		int ipfix_snprint_uint( char * str, size_t size, mnslp_ipfix_value_field &in, size_t len );
 
-		int ipfix_encode_bytes( mnslp_ipfix_value_field &in, uint8_t *out, size_t len, bool relay_f );
+		int ipfix_encode_bytes(mnslp_ipfix_value_field in, uint8_t *out, int relay_f );
 
-		int ipfix_decode_bytes( uint8_t *in, mnslp_ipfix_value_field *out, size_t len, bool relay_f );
+		mnslp_ipfix_value_field ipfix_decode_bytes( uint8_t *in, size_t len, int relay_f );
 
-		int ipfix_snprint_bytes( char * str, size_t size, mnslp_ipfix_value_field &in, size_t len );
+		int ipfix_snprint_bytes( char * str, size_t size, mnslp_ipfix_value_field &in_field, size_t len );
 
-		int ipfix_snprint_string( char * str, size_t size, mnslp_ipfix_value_field &in, size_t len );
+		int ipfix_snprint_string( char * str, size_t size, mnslp_ipfix_value_field &in_field, size_t len );
 
-		int ipfix_snprint_ipaddr( char * str, size_t size, mnslp_ipfix_value_field &in, size_t len );
+		int ipfix_snprint_ipaddr( char * str, size_t size, mnslp_ipfix_value_field in_field, size_t len );
 
-		int ipfix_encode_float( mnslp_ipfix_value_field &in, uint8_t *out, size_t len, bool relay_f );
+		int ipfix_encode_float( mnslp_ipfix_value_field in, uint8_t *out, int relay_f );
 	
-		int ipfix_decode_float( mnslp_ipfix_value_field &in, uint8_t *out, size_t len, bool relay_f );
+		mnslp_ipfix_value_field ipfix_decode_float( uint8_t *in, size_t len, int relay_f );
 
-		int ipfix_snprint_float( char * str, size_t size, mnslp_ipfix_value_field &in, size_t len );
+		int ipfix_snprint_float( char * str, size_t size, mnslp_ipfix_value_field in, size_t len );
+
+		mnslp_ipfix_value_field get_ipfix_value_field(uint8_t &_value8);
+		mnslp_ipfix_value_field get_ipfix_value_field(uint16_t &_value16);
+		mnslp_ipfix_value_field get_ipfix_value_field(uint32_t &_value32);
+		mnslp_ipfix_value_field get_ipfix_value_field(uint64_t &_value64);
+		mnslp_ipfix_value_field get_ipfix_value_field(char * _valuechar, int _length);
+		mnslp_ipfix_value_field get_ipfix_value_field(uint8_t * _valuebyte, int _length);
 		
+		int encode( mnslp_ipfix_value_field in, 
+						uint8_t *out, int relay_f);
+				
+		mnslp_ipfix_value_field decode( uint8_t *in, size_t len, int relay_f);
+		
+		int snprint( char * str, size_t size, mnslp_ipfix_value_field in, size_t len );
+
 };
 
 
@@ -162,16 +176,23 @@ private:
 	uint8_t *valuebyte;
 	
 public:
-	mnslp_ipfix_value_field(mnslp_ipfix_field f_type, uint8_t _value8);
-	mnslp_ipfix_value_field(mnslp_ipfix_field f_type, uint16_t _value16);
-	mnslp_ipfix_value_field(mnslp_ipfix_field f_type, uint32_t _value32);
-	mnslp_ipfix_value_field(mnslp_ipfix_field f_type, uint64_t _value64);
-	mnslp_ipfix_value_field(mnslp_ipfix_field f_type, char * _valuechar, int _length);
-	mnslp_ipfix_value_field(mnslp_ipfix_field f_type, uint8_t * _valuebyte, int _length);
+	
 	mnslp_ipfix_value_field(const mnslp_ipfix_value_field &param);
 	
+	mnslp_ipfix_value_field():
+		valuebyte(NULL), valuechar(NULL), length(0), 
+		value16(0), value32(0), value64(0) {};
 	~mnslp_ipfix_value_field();
 	mnslp_ipfix_value_field& operator= (const mnslp_ipfix_value_field &param);
+	
+	inline void set_value_int8(uint8_t &_value){value8 =_value; length = 1;}
+	inline void set_value_int16(uint16_t &_value){value16 =_value; length = 2;}
+	inline void set_value_int32(uint32_t &_value){value32 =_value; length = 4;}
+	inline void set_value_int64(uint64_t &_value){value64 =_value; length = 8;}
+	inline void set_value_float32(uint32_t &_value){value32 =_value; length = 4;}
+	inline void set_value_float64(uint64_t &_value){value64 =_value; length = 8;}
+	void set_value_vunit8(uint8_t * _valuebyte, int _length);
+	void set_value_vchar(char * _valuechar, int _length);
 	
 	
 	inline uint8_t get_value_int8(){ return value8; }
@@ -183,6 +204,7 @@ public:
 	inline char * get_value_string(){ return valuechar; }
 	inline uint8_t * get_value_byte(){ return valuebyte; }
 	inline uint8_t * get_value_address(){ return valuebyte; }
+	inline int getLength(){ return length; }
 	
 	void print(void);
 	

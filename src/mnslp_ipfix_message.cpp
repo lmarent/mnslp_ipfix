@@ -726,12 +726,14 @@ int mnslp_ipfix_message::_output_array( mnslp_ipfix_template *templ,
         }
         
         if ( templ->get_field(i).relay_f ) {
-            ipfix_encode_bytes( g_data.get_field(field_key), 
-								buf+buflen, g_data.get_length(field_key) ); // no encoding 
+            templ->get_field(i).elem->ipfix_encode_bytes( g_data.get_field(field_key), 
+														  buf+buflen, (size_t) 
+														  templ->get_field(i).relay_f ); // no encoding 
         }
         else {
             templ->get_field(i).elem->encode( g_data.get_field(field_key), 
-											  buf+buflen, g_data.get_length(field_key) );
+											  buf+buflen, 
+											  templ->get_field(i).relay_f );
         }
         buflen += g_data.get_length(field_key);
     }
