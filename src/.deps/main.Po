@@ -114,7 +114,7 @@ main.o: main.cpp /usr/include/stdio.h /usr/include/features.h \
  /usr/include/i386-linux-gnu/bits/in.h ../include/ipfix_def.h \
  /usr/include/c++/4.6/cstddef ../include/mnslp_ipfix_exception.h \
  ../include/mnslp_ipfix_message.h ../include/mnslp_ipfix_data_record.h \
- ../include/mnslp_ipfix_templates.h
+ ../include/mnslp_ipfix_templates.h /usr/include/c++/4.6/bitset
 
 /usr/include/stdio.h:
 
@@ -429,3 +429,5 @@ main.o: main.cpp /usr/include/stdio.h /usr/include/features.h \
 ../include/mnslp_ipfix_data_record.h:
 
 ../include/mnslp_ipfix_templates.h:
+
+/usr/include/c++/4.6/bitset:

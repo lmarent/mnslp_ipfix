@@ -31,6 +31,7 @@
  */
 
 #include <vector>
+#include <map>
 #include "mnslp_ipfix_fields.h"
 
 namespace mnslp_ipfix
@@ -107,40 +108,41 @@ class mnslp_ipfix_template
 			return maxfields;
 		}
 		
-		/** type == 1 Then data Field
-		 * else scope field
-		 */
-		inline void add_field(uint16_t _flength, int _unknown_f, 
-								  int _relay_f, int type,  mnslp_ipfix_field * _field)
-		{
-			ipfix_template_field_t t;
-			t.flength = _flength;
-			t.unknown_f = _unknown_f;
-			t.relay_f = _relay_f;
-			t.elem = _field;
-			if (type == 1)
-				datafields.push_back(t);
-			else
-				scopefields.push_back(t);
-		}
+		void add_field(uint16_t _flength, int _unknown_f, 
+					   int _relay_f, int type,  
+					   mnslp_ipfix_field * _field);
 		
 		ipfix_template_field_t get_field(int i);
-			
+		
+		void remove_unknown_fields();
+					
 };
 
 class mnslp_template_container
 {
 	private:
-		std::vector<mnslp_ipfix_template> templateList;
+		std::map<uint16_t, mnslp_ipfix_template *> templateList;
 	
 	public:
     
-		inline void add_template(mnslp_ipfix_template &param )
+		inline void add_template(mnslp_ipfix_template *param )
 		{
-			templateList.push_back(param);
+			templateList.insert ( std::pair<uint16_t, mnslp_ipfix_template *>(param->get_template_id(),param) );
 		}
 		
 		void delete_template(mnslp_ipfix_template * param);
+		
+		void delete_all_templates(void);
+		
+		void delete_template(uint16_t templid);
+		
+		bool exists_template(uint16_t templid);
+		
+		mnslp_ipfix_template * get_template(uint16_t templid);
+		
+		inline mnslp_template_container(void){}
+		
+		~mnslp_template_container(void);
 };
 
 }

@@ -42,7 +42,6 @@ class mnslp_ipfix_data_record
 
 private:
     std::map<mnslp_ipfix_field_key, mnslp_ipfix_value_field > field_data;    	/* Data values for every field */
-    std::map<mnslp_ipfix_field_key, uint16_t > field_length;	/* Variable length definition */
 
 public:
     
@@ -52,16 +51,10 @@ public:
     
     void insert_field(int eno, int ftype, mnslp_ipfix_value_field &value);
             
-    void insert_field_length(int eno, int ftype, uint16_t length);
-
     void insert_field(mnslp_ipfix_field_key &param, mnslp_ipfix_value_field &value);
-
-    void insert_field_length(mnslp_ipfix_field_key &param, uint16_t length);
         
     int get_num_fields();
-    
-    int get_num_field_length();
-    
+        
     mnslp_ipfix_value_field get_field(int eno, int ftype);
 
     mnslp_ipfix_value_field get_field(mnslp_ipfix_field_key &param);
@@ -71,6 +64,8 @@ public:
     uint16_t get_length(mnslp_ipfix_field_key &param);
     
     void clear();
+    
+    std::string to_string();
     
 };
 

@@ -29,6 +29,8 @@
 
 #include "mnslp_ipfix_data_record.h"
 #include <iostream>
+#include <sstream>
+
 
 
 namespace mnslp_ipfix
@@ -64,33 +66,12 @@ mnslp_ipfix_data_record::insert_field(mnslp_ipfix_field_key &param,
 }
 
 
-void 
-mnslp_ipfix_data_record::insert_field_length(mnslp_ipfix_field_key &param, 
-												  uint16_t length)
-{
-	field_length.insert( std::pair<mnslp_ipfix_field_key,uint16_t>(param,length) );
-}
-
-void 
-mnslp_ipfix_data_record::insert_field_length(int eno, int ftype, 
-												   uint16_t length)
-{
-	mnslp_ipfix_field_key key = mnslp_ipfix_field_key(eno, ftype);
-	insert_field_length(key, length);
-}
-
-
 int 
 mnslp_ipfix_data_record::get_num_fields()
 {
 	return field_data.size();
 }
 
-int 
-mnslp_ipfix_data_record::get_num_field_length()
-{
-	return field_length.size();
-}
 
 mnslp_ipfix_value_field 
 mnslp_ipfix_data_record::get_field(mnslp_ipfix_field_key &param)
@@ -114,12 +95,8 @@ mnslp_ipfix_data_record::get_field(int eno, int ftype)
 uint16_t 
 mnslp_ipfix_data_record::get_length(mnslp_ipfix_field_key &param)
 {
-	std::map<mnslp_ipfix_field_key,uint16_t>::iterator it;
-	it=field_length.find(param);
-	if (it == field_length.end())
-		throw mnslp_ipfix_bad_argument("Parameter field was not found");
-	else
-		it->second;
+	mnslp_ipfix_value_field fieldvalue = get_field(param);
+	return fieldvalue.get_length();
 }
 
 uint16_t 
@@ -134,7 +111,21 @@ mnslp_ipfix_data_record::clear()
 {
 	// free the memory assigned to data values.	
 	field_data.clear();
-	field_length.clear();
+}
+
+std::string 
+mnslp_ipfix_data_record::to_string()
+{
+	std::map<mnslp_ipfix_field_key, mnslp_ipfix_value_field>::iterator iter;
+	std::string strToReturn;
+	
+	for (iter = field_data.begin(); iter != field_data.end(); ++iter) {
+         mnslp_ipfix_field_key temp = iter->first;
+         strToReturn.append(temp.to_string()); 
+         strToReturn.append("=");
+         strToReturn.append((iter->second).to_string());
+    }
+    return strToReturn;
 }
 
 }

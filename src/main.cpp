@@ -7,6 +7,7 @@
 
 #include "mnslp_ipfix_data_record.h"
 #include "mnslp_ipfix_message.h"
+#include <bitset>
 
 
 using namespace mnslp_ipfix;
@@ -17,43 +18,51 @@ int main ( int argc, char **argv )
 	mnslp_ipfix_template *templscope;
 	mnslp_ipfix_data_record data;
 	
-	int nfields = 3;
+	int nfields = 1;
 	int result;
 	int sourceid = 12345;
 	char   buf[31]  = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
                            11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
                            21, 22, 23, 24, 25, 26, 27, 28, 29, 30 };
                            
+	char a = 10;
 	uint8_t value8 = 1;
 	uint32_t value32 = 3;	
-	uint8_t valuebyte0[5] = "1234";
+	uint8_t valuebyte0[5] = { 1, 2, 3, 4 };
 	int num_fields = 0;
 	char output[2000];
                            
 
-	mnslp_ipfix_message message = mnslp_ipfix_message(sourceid, IPFIX_VERSION);
+    std::bitset<8> x(a);
+    std::cout << x;
+
+	mnslp_ipfix_message message = mnslp_ipfix_message(sourceid, IPFIX_VERSION, false);
 	
 	message.new_data_template( &templdata, nfields );
 	result = message.add_field(templdata, 0, IPFIX_FT_SOURCEIPV4ADDRESS, 4);
 	
-
 	mnslp_ipfix_field *ptrField1 = message.get_field_definition( 0, IPFIX_FT_SOURCEIPV4ADDRESS );
 	mnslp_ipfix_value_field fvalue3 = ptrField1->get_ipfix_value_field((uint8_t *) buf, 4);
 	
-	
-	
-	std::cout << "voy" << fvalue3.getLength() << std::endl;
-	ptrField1->ipfix_snprint_bytes( output, (size_t) 1999, fvalue3, fvalue3.getLength() );
+	std::cout << "voy" << fvalue3.get_length() << std::endl;
+	ptrField1->ipfix_snprint_bytes( output, (size_t) 1999, fvalue3 );
 	std::cout << output << std::endl;
 	
-	
 	data.insert_field(0, IPFIX_FT_SOURCEIPV4ADDRESS, fvalue3);
-	data.insert_field_length(0, IPFIX_FT_SOURCEIPV4ADDRESS, 4);
 	
 	std::cout << "field 3"<< std::endl;	
-	message.output(templdata, &data);
-	std::cout << "output" << result << std::endl;
+	message.include_data(templdata, &data);
 	
+	message.output(templdata);
+	
+	char * charmes = message.get_message();
+	int lenght = message.get_offset();
+	
+	//for (int i=0; i < lenght; i++)
+	//	std::cout << charmes[i] << std::endl;
+	std::cout << "offset:" << lenght << std::endl;
+	
+	mnslp_ipfix_message message2 = mnslp_ipfix_message(charmes, lenght, false);
 
     /** init lib 
      
