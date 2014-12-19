@@ -680,7 +680,8 @@ mnslp_ipfix_value_field::mnslp_ipfix_value_field(const mnslp_ipfix_value_field &
 
 }
 
-mnslp_ipfix_value_field& mnslp_ipfix_value_field::operator= (const mnslp_ipfix_value_field &param)
+mnslp_ipfix_value_field& 
+mnslp_ipfix_value_field::operator= (const mnslp_ipfix_value_field &param)
 {
 		
 	value8 = param.value8;
@@ -712,6 +713,79 @@ mnslp_ipfix_value_field& mnslp_ipfix_value_field::operator= (const mnslp_ipfix_v
 	{
 		valuebyte = NULL;
 	}
+}
+
+
+bool
+mnslp_ipfix_value_field::operator==( mnslp_ipfix_value_field &param)
+{
+
+	if ( ((param.valuechar == NULL ) and (valuechar == NULL)) 
+	    and ((param.valuebyte == NULL ) and (valuebyte == NULL)) ) {
+			
+		if (length != param.length)
+			return false;
+				
+		if ( (value8 != param.value8) and (length == 1))
+			return false;
+		
+		if ((value16 != param.value16) and (length == 2))
+			return false;
+		
+		if ((value32 != param.value32) and (length == 4))
+			return false;
+
+		if ((value64 != param.value64) and (length == 8))
+			return false;	
+	}
+	else
+	{
+	
+		/* It is different it they have the valuechar different */
+		if ((param.valuechar == NULL ) and (valuechar != NULL))
+			return false;
+			
+		else if ((param.valuechar != NULL ) and (valuechar == NULL))
+			return false;
+			
+		else if ((param.valuechar != NULL ) 
+				  and (valuechar != NULL) 
+				  and (param.length != length))
+			return false;
+		
+		if ((param.valuechar != NULL) && (param.length > 0))
+		{
+			for (int i=0; i < param.length; i++)
+				if ( valuechar[i] != param.valuechar[i])
+					return false;
+		}
+		
+		/* It is different it they have the valuebyte different */
+		if ((param.valuebyte == NULL ) and (valuebyte != NULL))
+			return false;
+		else if ((param.valuebyte != NULL ) and (valuebyte == NULL))
+			return false;
+		else if ((param.valuebyte != NULL ) 
+				  and (valuebyte != NULL) 
+				  and (param.length != length))
+			return false;
+			
+		if ((param.valuebyte != NULL) && (param.length > 0) )
+		{
+			for (int i=0; i < param.length; i++)
+				if ( valuebyte[i] != param.valuebyte[i])
+					return false;
+		}
+
+	}
+	
+	return true;
+}
+
+bool
+mnslp_ipfix_value_field::operator!=( mnslp_ipfix_value_field &param)
+{
+	return !(operator==(param));
 }
 
 void mnslp_ipfix_value_field::print(void)
@@ -746,17 +820,17 @@ std::string mnslp_ipfix_value_field::to_string(void)
 	
 	if (length == 2){
 		o1 << "Value16:";
-		o1 << value8;
+		o1 << value16;
 	}
 	
 	if (length == 4){
 		o1 << "Value32:";
-		o1 << value8;
+		o1 << value32;
 	}
 
 	if (length == 8){
 		o1 << "Value64:";
-		o1 << value8;
+		o1 << value64;
 	}
 	
 	if (valuechar != NULL )
@@ -791,7 +865,6 @@ msnlp_ipfix_field_container::~msnlp_ipfix_field_container()
 void msnlp_ipfix_field_container::AddFieldType(int _eno, int _ftype, ssize_t _length, 
 											  int _coding, const std::string _name, 
 										  	  const std::string _documentation)
-										  	  throw(mnslp_ipfix_bad_argument)
 {
 	ipfix_field_type_t newType;
 	newType.eno = _eno;
@@ -806,7 +879,6 @@ void msnlp_ipfix_field_container::AddFieldType(int _eno, int _ftype, ssize_t _le
 
 
 void msnlp_ipfix_field_container::AddFieldType(ipfix_field_type_t &param)
-								 throw(mnslp_ipfix_bad_argument)
 {
 	mnslp_ipfix_field a = mnslp_ipfix_field(param);
 

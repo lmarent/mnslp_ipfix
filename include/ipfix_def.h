@@ -28,12 +28,6 @@
 // ===========================================================
 
 
- /*
- * IPFIX structs, types and definitions
- *
- * This is a generated file. Do not edit!
- *
- */
 #ifndef IPFIX_DEF_H
 #define IPFIX_DEF_H
 
@@ -53,15 +47,17 @@
 #define REV_PEN 29305 /* reverse elements private enterprise number, see RFC5103 */
 
 
-
+/**
+ * This structure represents a field to be exhange in the message
+ */ 
 typedef struct
 {
-    int         	eno;                /* enterprise number or 0 */
-    int         	ftype;              /* field type */
-    ssize_t     	length;             /* field length */
-    int        	 	coding;
-    std::string     name;
-    std::string     documentation;
+    int         	eno;                ///< enterprise number or 0
+    int         	ftype;              ///< field type - defines the type of field
+    ssize_t     	length;             ///< field length 
+    int        	 	coding;				///< it says how to encode and decode the field.
+    std::string     name;				///< Name of the field
+    std::string     documentation;      ///< Ued for fields with documentation.
 
 } ipfix_field_type_t;
 

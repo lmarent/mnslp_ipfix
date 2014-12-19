@@ -35,6 +35,23 @@
 namespace mnslp_ipfix
 {
 
+/**
+ * \class mnslp_ipfix_bad_argument
+ *
+ *
+ * \brief Exception for the ipfix message within m-nslp.
+ *
+ * This class is used to create all exceptions for the ipfix message within m-nslp.
+ *
+ * \author Andres Marentes
+ *
+ * \version 0.1 
+ *
+ * \date 2014/12/18 9:57:00
+ *
+ * Contact: la.marentes455@uniandes.edu.co
+ *  
+ */
 class mnslp_ipfix_bad_argument: public std::exception
 {
 

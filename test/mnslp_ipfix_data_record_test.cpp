@@ -27,8 +27,8 @@ class mnslp_ipfix_data_record_test : public mnslp_ipfix_data_record
 {
   public:
 
-	mnslp_ipfix_data_record_test()
-		: mnslp_ipfix_data_record() { }
+	mnslp_ipfix_data_record_test(uint16_t _template_id)
+		: mnslp_ipfix_data_record(_template_id) { }
 
 	friend class Mnslp_Ipfix_Data_Record_Test;
 };
@@ -55,7 +55,7 @@ class Mnslp_Ipfix_Data_Record_Test : public CppUnit::TestFixture {
     mnslp_ipfix_field *ptrField3;
     
     msnlp_ipfix_field_container field_container;
-    mnslp_ipfix_data_record data;
+    mnslp_ipfix_data_record *data;
 
 };
 
@@ -65,6 +65,7 @@ CPPUNIT_TEST_SUITE_REGISTRATION( Mnslp_Ipfix_Data_Record_Test );
 void Mnslp_Ipfix_Data_Record_Test::setUp() 
 {
 		
+	data = new mnslp_ipfix_data_record(256);
 	field_container.initialize_forward();
 	
 }
@@ -86,29 +87,23 @@ void Mnslp_Ipfix_Data_Record_Test::testAssign()
 	// Int 1
 	ptrField1 = field_container.get_field( 0, IPFIX_FT_IGMPTYPE );
 	mnslp_ipfix_value_field fvalue1 = ptrField1->get_ipfix_value_field(value8);
-	data.insert_field(0, IPFIX_FT_IGMPTYPE, fvalue1);
-	data.insert_field_length(0, IPFIX_FT_IGMPTYPE, 1);
+	data->insert_field(0, IPFIX_FT_IGMPTYPE, fvalue1);
 	
 	// Int 4
 	ptrField2 = field_container.get_field( 0, IPFIX_FT_INGRESSINTERFACE );
 	mnslp_ipfix_value_field fvalue2 = ptrField2->get_ipfix_value_field(value32);
-	data.insert_field(0, IPFIX_FT_INGRESSINTERFACE, fvalue2);
-	data.insert_field_length(0, IPFIX_FT_INGRESSINTERFACE, 4);
+	data->insert_field(0, IPFIX_FT_INGRESSINTERFACE, fvalue2);
 
     //Address 4
 	ptrField3 = field_container.get_field( 0, IPFIX_FT_SOURCEIPV4ADDRESS );
 	mnslp_ipfix_value_field fvalue3 = ptrField3->get_ipfix_value_field((uint8_t *) valuebyte0, 4);
-	data.insert_field(0, IPFIX_FT_SOURCEIPV4ADDRESS, fvalue3);
-	data.insert_field_length(0, IPFIX_FT_SOURCEIPV4ADDRESS, 4);
+	data->insert_field(0, IPFIX_FT_SOURCEIPV4ADDRESS, fvalue3);
 
-	num_fields = data.get_num_fields();
+	num_fields = data->get_num_fields();
 	CPPUNIT_ASSERT( num_fields == 3 );
 	
-	mnslp_ipfix_value_field fieltmp = data.get_field(0, IPFIX_FT_INGRESSINTERFACE);
+	mnslp_ipfix_value_field fieltmp = data->get_field(0, IPFIX_FT_INGRESSINTERFACE);
 	CPPUNIT_ASSERT( fieltmp.get_value_int32() == value32 );
 	
-	// Verifies the length insert.
-	num_field_length = data.get_num_field_length();
-	CPPUNIT_ASSERT( num_fields == 3 );
 }
 // EOF

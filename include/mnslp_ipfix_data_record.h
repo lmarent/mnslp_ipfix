@@ -37,37 +37,109 @@
 namespace mnslp_ipfix
 {
 
+/**
+ * \class mnslp_ipfix_data_record
+ *
+ *
+ * \brief Maintains the data values within a record.
+ *
+ * This class is meant to maintain all values for a record. The fields in
+ *   a record are related with a template.
+ *
+ * \author Andres Marentes
+ *
+ * \version 0.1 
+ *
+ * \date 2014/12/18 9:57:00
+ *
+ * Contact: la.marentes455@uniandes.edu.co
+ *  
+ */
 class mnslp_ipfix_data_record
-{
+{ 
 
-private:
-    std::map<mnslp_ipfix_field_key, mnslp_ipfix_value_field > field_data;    	/* Data values for every field */
+    uint16_t template_id;														///< template id which is associated with this data record.
+    std::map<mnslp_ipfix_field_key, mnslp_ipfix_value_field > field_data;    	///< Data value map for every field 
 
 public:
+        
+    /** 
+     * Creates an data_record
+     */
+    mnslp_ipfix_data_record(uint16_t _template_id);
     
-    mnslp_ipfix_data_record();
+    /** 
+	 * Contructor of the class, it copies from another data record.
+	 */
+	mnslp_ipfix_data_record(const mnslp_ipfix_data_record &param);
     
     ~mnslp_ipfix_data_record();
     
+    inline uint16_t get_template_id(){ return template_id; }
+    
+    /**
+     *  Insert a field value based on components of the field key (eno,ftype).
+     */
     void insert_field(int eno, int ftype, mnslp_ipfix_value_field &value);
             
+    /** 
+     * Insert a field value based on the field key (param).
+     */
     void insert_field(mnslp_ipfix_field_key &param, mnslp_ipfix_value_field &value);
         
+    /** 
+     * Return the number of fields with a value
+     */
     int get_num_fields();
         
+    /** 
+     * Return the field value based on components of the field key
+     */
     mnslp_ipfix_value_field get_field(int eno, int ftype);
 
+    /** 
+     * Return the field value based on the field key
+     */
     mnslp_ipfix_value_field get_field(mnslp_ipfix_field_key &param);
     
+    /** 
+     * Return the length on bytes of the value based on components of the field key
+     */
     uint16_t get_length(int eno, int ftype);
 
+    /** 
+     * Return the length on bytes of the value based on the field key
+     */
     uint16_t get_length(mnslp_ipfix_field_key &param);
     
+    /** 
+     * delete all fields values inserted
+     */
     void clear();
     
+    /** 
+     * Create an string representing all field values.
+     */
     std::string to_string();
     
+	/**
+	 *  Equals to operator. 
+	 *  It is equal when it has the same amount of field values and every value is equal.
+	 */
+	bool operator== (mnslp_ipfix_data_record& rhs);
+	
+	/** 
+	 * Assignment operator. 
+	*/ 
+	mnslp_ipfix_data_record& operator= (mnslp_ipfix_data_record&);
+	
+	/** 
+	* Not equal to operator. 
+	*/ 
+	bool operator != (mnslp_ipfix_data_record &rhs);
+    
 };
+
 
 }
 

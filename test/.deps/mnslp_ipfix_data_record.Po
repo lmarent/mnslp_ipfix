@@ -111,7 +111,8 @@ mnslp_ipfix_data_record.o: ../src/mnslp_ipfix_data_record.cpp \
  /usr/include/c++/4.6/bits/locale_facets.tcc \
  /usr/include/c++/4.6/bits/basic_ios.tcc \
  /usr/include/c++/4.6/bits/ostream.tcc /usr/include/c++/4.6/istream \
- /usr/include/c++/4.6/bits/istream.tcc
+ /usr/include/c++/4.6/bits/istream.tcc /usr/include/c++/4.6/sstream \
+ /usr/include/c++/4.6/bits/sstream.tcc
 
 ../include/mnslp_ipfix_data_record.h:
 
@@ -408,3 +409,7 @@ mnslp_ipfix_data_record.o: ../src/mnslp_ipfix_data_record.cpp \
 /usr/include/c++/4.6/istream:
 
 /usr/include/c++/4.6/bits/istream.tcc:
+
+/usr/include/c++/4.6/sstream:
+
+/usr/include/c++/4.6/bits/sstream.tcc:

@@ -1,0 +1,285 @@
+make  test_runner
+make[1]: Entering directory `/home/luis/mnslp_ipfix/test'
+g++ -DPACKAGE_NAME=\"mnslp_ipfix\" -DPACKAGE_TARNAME=\"mnslp_ipfix\" -DPACKAGE_VERSION=\"0.1\" -DPACKAGE_STRING=\"mnslp_ipfix\ 0.1\" -DPACKAGE_BUGREPORT=\"la.marentes455@uniandes.edu.co\" -DPACKAGE_URL=\"\" -DPACKAGE=\"mnslp_ipfix\" -DVERSION=\"0.1\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DHAVE_DLFCN_H=1 -DLT_OBJDIR=\".libs/\" -DHAVE_STDBOOL_H=1 -I.  -g -I../include     -g -O2 -MT mnslp_ipfix_message_test.o -MD -MP -MF .deps/mnslp_ipfix_message_test.Tpo -c -o mnslp_ipfix_message_test.o `test -f '../test/mnslp_ipfix_message_test.cpp' || echo './'`../test/mnslp_ipfix_message_test.cpp
+mv -f .deps/mnslp_ipfix_message_test.Tpo .deps/mnslp_ipfix_message_test.Po
+/bin/bash ../libtool --tag=CXX   --mode=link g++  -g -O2 -lcppunit -ldl -ldl  -o test_runner mnslp_ipfix_field.o mnslp_ipfix_templates.o mnslp_ipfix_data_record.o mnslp_ipfix_message.o mnslp_ipfix_field_test.o mnslp_ipfix_data_record_test.o mnslp_ipfix_message_test.o test_runner.o  
+libtool: link: g++ -g -O2 -o test_runner mnslp_ipfix_field.o mnslp_ipfix_templates.o mnslp_ipfix_data_record.o mnslp_ipfix_message.o mnslp_ipfix_field_test.o mnslp_ipfix_data_record_test.o mnslp_ipfix_message_test.o test_runner.o  /usr/lib/libcppunit.so -ldl
+make[1]: Leaving directory `/home/luis/mnslp_ipfix/test'
+make  check-TESTS
+make[1]: Entering directory `/home/luis/mnslp_ipfix/test'
+Mnslp_Ipfix_Field_Test::testGetters : OK
+Mnslp_Ipfix_Field_Test::testAssign : OK
+Mnslp_Ipfix_Field_Test::testAddFields : OK
+Mnslp_Ipfix_Field_Test::testException : OK
+Mnslp_Ipfix_Field_Test::testExceptionInt1 : OK
+Mnslp_Ipfix_Field_Test::testExceptionInt2 : OK
+Mnslp_Ipfix_Field_Test::testExceptionInt4 : OK
+Mnslp_Ipfix_Field_Test::testExceptionInt8 : OK
+Mnslp_Ipfix_Field_Test::testExceptionAddress4lenght:10
+ : OK
+Mnslp_Ipfix_Field_Test::testExceptionAddress16lenght:10
+ : OK
+Mnslp_Ipfix_Field_Test::testExceptionString : OK
+Mnslp_Ipfix_Field_Test::testExceptionByteFixedlenght:5
+ : OK
+Mnslp_Ipfix_Field_Test::testFieldValueslenght:4
+lenght:16
+lenght:16
+lenght:16
+lenght:6
+lenght:6
+lenght:6
+lenght:14
+lenght:14
+lenght:14
+ : OK
+Mnslp_Ipfix_Data_Record_Test::testAssignlenght:4
+ : OK
+Mnslp_Ipfix_Message_Test::testAddTemplatetemplate found:setid:256
+Max fields:3
+Num fields:0
+template found:setid:256
+Max fields:3
+Num fields:0
+type of template:1
+template found:setid:257
+Max fields:3
+Num fields:0
+template found:setid:257
+Max fields:3
+Num fields:0
+type of template:0
+template found:setid:258
+Max fields:3
+Num fields:0
+lenght:4
+template found:setid:259
+Max fields:3
+Num fields:0
+i:0
+template found:setid:259
+Max fields:3
+Num fields:0
+type of template:1
+i:1
+template found:setid:259
+Max fields:3
+Num fields:1
+type of template:1
+i:2
+template found:setid:259
+Max fields:3
+Num fields:2
+type of template:1
+ : OK
+Mnslp_Ipfix_Message_Test::testExceptionAddTemplatetemplate found:setid:256
+Max fields:3
+Num fields:0
+template found:setid:256
+Max fields:3
+Num fields:0
+template found:setid:257
+Max fields:3
+Num fields:0
+template found:setid:257
+Max fields:3
+Num fields:0
+template found:setid:256
+Max fields:3
+Num fields:0
+template found:setid:256
+Max fields:3
+Num fields:0
+type of template:1
+template found:setid:256
+Max fields:3
+Num fields:1
+type of template:1
+template found:setid:256
+Max fields:3
+Num fields:2
+type of template:1
+template found:setid:256
+Max fields:3
+Num fields:3
+template found:setid:257
+Max fields:3
+Num fields:0
+type of template:0
+template found:setid:257
+Max fields:3
+Num fields:1
+type of template:0
+template found:setid:257
+Max fields:3
+Num fields:2
+type of template:0
+template found:setid:257
+Max fields:3
+Num fields:3
+template found:setid:258
+Max fields:4
+Num fields:0
+i:0
+template found:setid:258
+Max fields:4
+Num fields:0
+type of template:1
+i:1
+template found:setid:258
+Max fields:4
+Num fields:1
+type of template:1
+i:2
+template found:setid:258
+Max fields:4
+Num fields:2
+type of template:1
+i:3
+template found:setid:258
+Max fields:4
+Num fields:3
+ : OK
+Mnslp_Ipfix_Message_Test::testDataRecordstemplate found:setid:256
+Max fields:3
+Num fields:0
+template found:setid:256
+Max fields:3
+Num fields:0
+type of template:1
+template found:setid:256
+Max fields:3
+Num fields:1
+type of template:1
+template found:setid:256
+Max fields:3
+Num fields:2
+type of template:1
+lenght:4
+template found:setid:256
+Max fields:3
+Num fields:3
+template found:setid:256
+Max fields:3
+Num fields:3
+template found:setid:256
+Max fields:3
+Num fields:3
+Here we are 0
+Here we are 001b:0a:0
+Here we are 01
+Here we are 02
+Here we are 1
+Here we are 2
+Here we are 3
+Here we are 0
+Here we are 001b:0a:0
+Here we are 01
+Here we are 02
+Here we are 1
+Here we are 2
+Here we are 3
+Here we are 0
+Here we are 001b:0a:0
+Here we are 01
+Here we are 02
+Here we are 1
+Here we are 2
+Here we are 3
+Here we are 0
+Here we are 001b:0a:0
+Here we are 01
+Here we are 02
+Here we are 1
+Here we are 2
+Here we are 3
+Here we are 0
+Here we are 0
+Here we are 001b:0a:0
+Here we are 01
+Here we are 02
+Here we are 1
+Here we are 2
+Here we are 3
+Here we are 0
+Here we are 001b:0a:0
+Here we are 01
+Here we are 02
+Here we are 1
+Here we are 2
+Here we are 3
+Here we are 0
+Here we are 001b:0a:0
+Here we are 01
+Here we are 02
+Here we are 1
+Here we are 2
+Here we are 3
+Here we are 0
+Here we are 001b:0a:0
+Here we are 01
+Here we are 02
+Here we are 1
+Here we are 2
+Here we are 3
+ : OK
+Mnslp_Ipfix_Message_Test::testExportImporttemplate found:setid:256
+Max fields:3
+Num fields:0
+template found:setid:256
+Max fields:3
+Num fields:0
+type of template:1
+template found:setid:256
+Max fields:3
+Num fields:1
+type of template:1
+template found:setid:256
+Max fields:3
+Num fields:2
+type of template:1
+lenght:4
+template found:setid:256
+Max fields:3
+Num fields:3
+template found:setid:256
+Max fields:3
+Num fields:3
+number of scope fields:3
+number of data fields:0
+number of scope fields:3
+number of data fields:0
+number of scope fields:3
+number of data fields:0
+template length:20offset:0
+Field Num:0
+number of scope fields:3
+number of data fields:0
+number of scope fields:3
+number of data fields:0
+number of scope fields:3
+number of data fields:0
+Field Num:1
+number of scope fields:3
+number of data fields:0
+number of scope fields:3
+number of data fields:0
+number of scope fields:3
+number of data fields:0
+Field Num:2
+number of scope fields:3
+number of data fields:0
+number of scope fields:3
+number of data fields:0
+number of scope fields:3
+number of data fields:0
+buffer len:20
+New set
+In function:finish_cs
+In function:finish_csStep 2
+FAIL: test_runner
+===============================================
+1 of 1 test failed
+Please report to la.marentes455@uniandes.edu.co
+===============================================
+make[1]: Leaving directory `/home/luis/mnslp_ipfix/test'

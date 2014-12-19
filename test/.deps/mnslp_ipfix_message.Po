@@ -125,8 +125,8 @@ mnslp_ipfix_message.o: ../src/mnslp_ipfix_message.cpp \
  /usr/include/c++/4.6/bits/locale_facets.tcc \
  /usr/include/c++/4.6/bits/basic_ios.tcc \
  /usr/include/c++/4.6/bits/ostream.tcc /usr/include/c++/4.6/istream \
- /usr/include/c++/4.6/bits/istream.tcc /usr/include/fcntl.h \
- /usr/include/i386-linux-gnu/bits/fcntl.h \
+ /usr/include/c++/4.6/bits/istream.tcc /usr/include/c++/4.6/stdexcept \
+ /usr/include/fcntl.h /usr/include/i386-linux-gnu/bits/fcntl.h \
  /usr/include/i386-linux-gnu/bits/stat.h \
  /usr/include/i386-linux-gnu/bits/fcntl2.h /usr/include/netdb.h \
  /usr/include/rpc/netdb.h /usr/include/i386-linux-gnu/bits/netdb.h \
@@ -473,6 +473,8 @@ mnslp_ipfix_message.o: ../src/mnslp_ipfix_message.cpp \
 /usr/include/c++/4.6/istream:
 
 /usr/include/c++/4.6/bits/istream.tcc:
+
+/usr/include/c++/4.6/stdexcept:
 
 /usr/include/fcntl.h:
 

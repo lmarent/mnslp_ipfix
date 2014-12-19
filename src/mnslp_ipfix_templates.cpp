@@ -30,6 +30,7 @@
 #include "mnslp_ipfix_templates.h"
 #include "mnslp_ipfix_exception.h"
 #include <iostream>
+#include <stdexcept>      // std::out_of_range
 
 namespace mnslp_ipfix
 {
@@ -45,10 +46,7 @@ ipfix_template_field_t mnslp_ipfix_template::get_field(int i)
 		throw mnslp_ipfix_bad_argument("Invalid field number");
 	}
 	else
-	{
-		std::cout << "number of scope fields:" << get_number_scopefields() << std::endl;
-		std::cout << "number of data fields:" << get_number_datafields() << std::endl;
-				
+	{				
 		if (i < get_number_scopefields())
 			return scopefields[i];
 		else
@@ -79,28 +77,82 @@ mnslp_ipfix_template::remove_unknown_fields()
 	
 }
 
-/** If type == 1 Then data Field
+/** If type == 0 Then data Field
  *  else scope field
 */
-void mnslp_ipfix_template::add_field(uint16_t _flength, int _unknown_f, 
-								     int _relay_f, int type,  
+void mnslp_ipfix_template::add_field(uint16_t _flength, 
+                                     int _unknown_f, 
+								     int _relay_f,
 									 mnslp_ipfix_field * _field)
 {
 	ipfix_template_field_t t;
+	
 	t.flength = _flength;
 	t.unknown_f = _unknown_f;
 	t.relay_f = _relay_f;
 	t.elem = _field;
-	
-	std::cout << "type of template:" << type << std::endl;
+			
 	if (type == DATA_TEMPLATE)
 		datafields.push_back(t);
 	else
 		scopefields.push_back(t);
 }
 
+bool
+mnslp_ipfix_template::operator== (mnslp_ipfix_template& rhs)
+{
+	if (rhs.type != type)
+		return false;
+	
+	if (rhs.tid != tid)	
+		return false;
+
+	if (rhs.maxfields != maxfields)	
+		return false;
+	try
+	{
+		for (int i = 0; i < datafields.size(); i++){
+			ipfix_template_field_t lfs_item = datafields[i];
+			ipfix_template_field_t rhs_item = rhs.datafields[i];
+			if ( ( lfs_item.flength != rhs_item.flength) ||
+				 ( lfs_item.unknown_f != rhs_item.unknown_f) ||
+				 ( lfs_item.relay_f != rhs_item.relay_f) ||
+				 ( *(lfs_item.elem) != *(rhs_item.elem)))
+				return false;
+		}
+
+		for (int j = 0; j < scopefields.size(); j++){
+			ipfix_template_field_t lfs_item = scopefields[j];
+			ipfix_template_field_t rhs_item = rhs.scopefields[j];
+			if ( ( lfs_item.flength != rhs_item.flength) ||
+				 ( lfs_item.unknown_f != rhs_item.unknown_f) ||
+				 ( lfs_item.relay_f != rhs_item.relay_f) ||
+				 ( *(lfs_item.elem) != *(rhs_item.elem)))
+				return false;
+		}
+		
+		return true;
+	
+	}
+	catch(const std::out_of_range& oor)
+	{
+		return false;
+	}
+	
+}
+
+bool
+mnslp_ipfix_template::operator!= (mnslp_ipfix_template& rhs)
+{
+	return !(operator==(rhs));
+}
+
+
 void mnslp_template_container::delete_template(mnslp_ipfix_template * param)
 {
+	std::string func = "delete_template";
+	std::cout << "func:" << func << std::endl; 
+	
 	std::map<uint16_t, mnslp_ipfix_template *>::iterator it;
 	for( it= templateList.begin(); it != templateList.end(); ++it) {
 		if ( it->first == param->get_template_id() )
@@ -109,6 +161,8 @@ void mnslp_template_container::delete_template(mnslp_ipfix_template * param)
 	
 	delete(it->second);
 	templateList.erase(it);
+	
+	std::cout << "end func:" << func << std::endl; 
 }
 
 
@@ -142,11 +196,7 @@ mnslp_template_container::get_template(uint16_t templid)
 
 	std::map<uint16_t, mnslp_ipfix_template *>::iterator it;
 	for( it=templateList.begin(); it != templateList.end(); ++it) {
-		if ( it->first ==  templid  ){
-			
-			std::cout << "template found:" << "setid:" << templid <<  std::endl;
-			std::cout << "Max fields:" << (it->second)->get_maxfields() << std::endl;
-			std::cout << "Num fields:" << (it->second)->get_numfields() << std::endl;
+		if ( it->first ==  templid  ){			
 			return it->second;
 		}		
 	}
@@ -177,5 +227,26 @@ mnslp_template_container::~mnslp_template_container(void)
 
 }
 
+bool 
+mnslp_template_container::operator== (mnslp_template_container& rhs)
+{
+	if (rhs.templateList.size() != templateList.size())
+		return false;
+	
+	std::map<uint16_t, mnslp_ipfix_template *>::iterator it;
+	for( it=templateList.begin(); it != templateList.end(); ++it) {
+		if ( *(it->second) != *(rhs.get_template(it->first)) )
+			return false;
+	}
+	
+	return true;
+	
+}
+
+bool
+mnslp_template_container::operator!= (mnslp_template_container& rhs)
+{
+	return !(operator==(rhs));
+}
 
 }

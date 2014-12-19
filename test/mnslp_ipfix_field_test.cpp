@@ -216,16 +216,16 @@ void Mnslp_Ipfix_Field_Test::testFieldValues()
 		// Test without encoding
 	relay_f = 1;
 	tmpField->ipfix_encode_int( fvalue1, out, relay_f );
-	mnslp_ipfix_value_field fvalue1aResult = tmpField->ipfix_decode_int( out, fvalue1.getLength(), relay_f );	
+	mnslp_ipfix_value_field fvalue1aResult = tmpField->ipfix_decode_int( out, fvalue1.get_length(), relay_f );	
 	CPPUNIT_ASSERT( (uint8_t) 8 == fvalue1aResult.get_value_int8() );
 		
 		// Test with encoding
 	relay_f = 0;
 	tmpField->ipfix_encode_int( fvalue1, out, relay_f );
-	mnslp_ipfix_value_field fvalue1bResult = tmpField->ipfix_decode_int( out, fvalue1.getLength(), relay_f );	
+	mnslp_ipfix_value_field fvalue1bResult = tmpField->ipfix_decode_int( out, fvalue1.get_length(), relay_f );	
 	CPPUNIT_ASSERT( (uint8_t) 8 == fvalue1bResult.get_value_int8() );
 	tmpField->ipfix_snprint_int( charprint, 100, fvalue1bResult );
-	std::string str(charprint, charprint + fvalue1bResult.getLength());
+	std::string str(charprint, charprint + fvalue1bResult.get_length());
 	CPPUNIT_ASSERT( str.compare("8")  == 0 );
 
 	// Int 2
@@ -233,19 +233,19 @@ void Mnslp_Ipfix_Field_Test::testFieldValues()
 	mnslp_ipfix_value_field fvalue2 = tmpField->get_ipfix_value_field(value16);
 	CPPUNIT_ASSERT( (uint16_t) 21 == fvalue2.get_value_int16() );
 	tmpField->ipfix_snprint_int( charprint, 100, fvalue2 );
-	std::string str2(charprint, charprint + fvalue2.getLength());
+	std::string str2(charprint, charprint + fvalue2.get_length());
 	CPPUNIT_ASSERT( str2.compare("21")  == 0 );
 
 		// Test without encoding
 	relay_f = 1;
 	tmpField->ipfix_encode_int( fvalue2, out, relay_f );
-	mnslp_ipfix_value_field fvalue2aResult = tmpField->ipfix_decode_int( out, fvalue2.getLength(), relay_f );	
+	mnslp_ipfix_value_field fvalue2aResult = tmpField->ipfix_decode_int( out, fvalue2.get_length(), relay_f );	
 	CPPUNIT_ASSERT( (uint16_t) 21 == fvalue2aResult.get_value_int16() );
 		
 		// Test with encoding
 	relay_f = 0;
 	tmpField->ipfix_encode_int( fvalue2, out, relay_f );
-	mnslp_ipfix_value_field fvalue2bResult = tmpField->ipfix_decode_int( out, fvalue2.getLength(), relay_f );	
+	mnslp_ipfix_value_field fvalue2bResult = tmpField->ipfix_decode_int( out, fvalue2.get_length(), relay_f );	
 	CPPUNIT_ASSERT( (uint16_t) 21 == fvalue2bResult.get_value_int16() );
 
 	// Int 4
@@ -253,20 +253,20 @@ void Mnslp_Ipfix_Field_Test::testFieldValues()
 	mnslp_ipfix_value_field fvalue3 = tmpField->get_ipfix_value_field(value32);
 	CPPUNIT_ASSERT( (uint32_t) 3210 == fvalue3.get_value_int32() );
 	tmpField->ipfix_snprint_int( charprint, 100, fvalue3 );
-	std::string str3(charprint, charprint + fvalue3.getLength());
+	std::string str3(charprint, charprint + fvalue3.get_length());
 	CPPUNIT_ASSERT( str3.compare("3210")  == 0 );
 
 
 		// Test without encoding
 	relay_f = 1;
 	tmpField->ipfix_encode_int( fvalue3, out, relay_f );
-	mnslp_ipfix_value_field fvalue3aResult = tmpField->ipfix_decode_int( out, fvalue3.getLength(), relay_f );	
+	mnslp_ipfix_value_field fvalue3aResult = tmpField->ipfix_decode_int( out, fvalue3.get_length(), relay_f );	
 	CPPUNIT_ASSERT( (uint32_t) 3210 == fvalue3aResult.get_value_int32() );
 		
 		// Test with encoding
 	relay_f = 0;
 	tmpField->ipfix_encode_int( fvalue3, out, relay_f );
-	mnslp_ipfix_value_field fvalue3bResult = tmpField->ipfix_decode_int( out, fvalue3.getLength(), relay_f );	
+	mnslp_ipfix_value_field fvalue3bResult = tmpField->ipfix_decode_int( out, fvalue3.get_length(), relay_f );	
 	CPPUNIT_ASSERT( (uint32_t) 3210 == fvalue3bResult.get_value_int32() );
 	
     //Address 4
@@ -280,7 +280,7 @@ void Mnslp_Ipfix_Field_Test::testFieldValues()
 		// Test without encoding
 	relay_f = 1;
 	tmpField->ipfix_encode_int( fvalue4, out, relay_f );
-	mnslp_ipfix_value_field fvalue4aResult = tmpField->ipfix_decode_int( out, fvalue4.getLength(), relay_f );	
+	mnslp_ipfix_value_field fvalue4aResult = tmpField->ipfix_decode_int( out, fvalue4.get_length(), relay_f );	
 	uint8_t * valuebyte4a = fvalue4.get_value_address();
 	for (int i=0; i < 4; i++)
 		if (valuebyte0[i] != valuebyte4a[i]) equal = false;
@@ -289,7 +289,7 @@ void Mnslp_Ipfix_Field_Test::testFieldValues()
 		// Test with encoding
 	relay_f = 0;
 	tmpField->ipfix_encode_int( fvalue4, out, relay_f );
-	mnslp_ipfix_value_field fvalue4bResult = tmpField->ipfix_decode_int( out, fvalue4.getLength(), relay_f );	
+	mnslp_ipfix_value_field fvalue4bResult = tmpField->ipfix_decode_int( out, fvalue4.get_length(), relay_f );	
 	uint8_t * valuebyte4b = fvalue4.get_value_address();
 	for (int i=0; i < 4; i++)
 		if (valuebyte0[i] != valuebyte4b[i]) equal = false;
@@ -303,7 +303,7 @@ void Mnslp_Ipfix_Field_Test::testFieldValues()
 	CPPUNIT_ASSERT( printv5 == value64 );
 	
 	tmpField->ipfix_snprint_int( charprint, 100, fvalue5 );
-	std::string str5(charprint, charprint + fvalue5.getLength());
+	std::string str5(charprint, charprint + fvalue5.get_length());
 	std::ostringstream o1;
 	o1 << value64;
 	std::string str6 = o1.str();
@@ -313,13 +313,13 @@ void Mnslp_Ipfix_Field_Test::testFieldValues()
 		// Test without encoding
 	relay_f = 1;
 	tmpField->ipfix_encode_int( fvalue5, out, relay_f );
-	mnslp_ipfix_value_field fvalue5aResult = tmpField->ipfix_decode_int( out, fvalue5.getLength(), relay_f );	
+	mnslp_ipfix_value_field fvalue5aResult = tmpField->ipfix_decode_int( out, fvalue5.get_length(), relay_f );	
 	CPPUNIT_ASSERT( (uint64_t) 87654321 == fvalue5aResult.get_value_int64() );
 		
 		// Test with encoding
 	relay_f = 0;
 	tmpField->ipfix_encode_int( fvalue5, out, relay_f );
-	mnslp_ipfix_value_field fvalue5bResult = tmpField->ipfix_decode_int( out, fvalue5.getLength(), relay_f );	
+	mnslp_ipfix_value_field fvalue5bResult = tmpField->ipfix_decode_int( out, fvalue5.get_length(), relay_f );	
 	CPPUNIT_ASSERT( (uint64_t) 87654321 == fvalue5bResult.get_value_int64() );
 	
 
@@ -334,7 +334,7 @@ void Mnslp_Ipfix_Field_Test::testFieldValues()
 		// Test without encoding
 	relay_f = 1;
 	tmpField->ipfix_encode_bytes( fvalue6, out, relay_f );
-	mnslp_ipfix_value_field fvalue6aResult = tmpField->ipfix_decode_bytes( out, fvalue6.getLength(), relay_f );	
+	mnslp_ipfix_value_field fvalue6aResult = tmpField->ipfix_decode_bytes( out, fvalue6.get_length(), relay_f );	
 	uint8_t * valuebyte6a = fvalue6aResult.get_value_address();
 	for (int i=0; i < 16; i++)
 		if (valuebyte6a[i] != valuebyte3[i]) equal = false;
@@ -343,7 +343,7 @@ void Mnslp_Ipfix_Field_Test::testFieldValues()
 		// Test with encoding
 	relay_f = 0;
 	tmpField->ipfix_encode_bytes( fvalue6, out, relay_f );
-	mnslp_ipfix_value_field fvalue6bResult = tmpField->ipfix_decode_bytes( out, fvalue6.getLength(), relay_f );	
+	mnslp_ipfix_value_field fvalue6bResult = tmpField->ipfix_decode_bytes( out, fvalue6.get_length(), relay_f );	
 	uint8_t * valuebyte6b = fvalue6bResult.get_value_address();
 	for (int i=0; i < 16; i++)
 		if (valuebyte6b[i] != valuebyte3[i]) equal = false;
@@ -362,7 +362,7 @@ void Mnslp_Ipfix_Field_Test::testFieldValues()
 		// Test without encoding
 	relay_f = 1;
 	tmpField->ipfix_encode_bytes( fvalue7, out, relay_f );
-	mnslp_ipfix_value_field fvalue7aResult = tmpField->ipfix_decode_bytes( out, fvalue7.getLength(), relay_f );	
+	mnslp_ipfix_value_field fvalue7aResult = tmpField->ipfix_decode_bytes( out, fvalue7.get_length(), relay_f );	
 	uint8_t * valuebyte7a = fvalue7aResult.get_value_byte();
 	for (int i=0; i < 6; i++)
 		if (valuebyte7a[i] != valuebyte3[i]) equal = false;
@@ -371,7 +371,7 @@ void Mnslp_Ipfix_Field_Test::testFieldValues()
 		// Test with encoding
 	relay_f = 0;
 	tmpField->ipfix_encode_bytes( fvalue7, out, relay_f );
-	mnslp_ipfix_value_field fvalue7bResult = tmpField->ipfix_decode_bytes( out, fvalue7.getLength(), relay_f );	
+	mnslp_ipfix_value_field fvalue7bResult = tmpField->ipfix_decode_bytes( out, fvalue7.get_length(), relay_f );	
 	uint8_t * valuebyte7b = fvalue7bResult.get_value_byte();
 	for (int i=0; i < 6; i++)
 		if (valuebyte7b[i] != valuebyte3[i]) equal = false;
@@ -390,7 +390,7 @@ void Mnslp_Ipfix_Field_Test::testFieldValues()
 		// Test without encoding
 	relay_f = 1;
 	tmpField->ipfix_encode_bytes( fvalue8, out, relay_f );
-	mnslp_ipfix_value_field fvalue8aResult = tmpField->ipfix_decode_bytes( out, fvalue8.getLength(), relay_f );	
+	mnslp_ipfix_value_field fvalue8aResult = tmpField->ipfix_decode_bytes( out, fvalue8.get_length(), relay_f );	
 	uint8_t * valuebyte8a = fvalue8aResult.get_value_byte();
 	for (int i=0; i < 14; i++)
 		if (valuebyte8a[i] != valuebyte2[i]) equal = false;
@@ -399,7 +399,7 @@ void Mnslp_Ipfix_Field_Test::testFieldValues()
 		// Test with encoding
 	relay_f = 0;
 	tmpField->ipfix_encode_bytes( fvalue8, out, relay_f );
-	mnslp_ipfix_value_field fvalue8bResult = tmpField->ipfix_decode_bytes( out, fvalue8.getLength(), relay_f );	
+	mnslp_ipfix_value_field fvalue8bResult = tmpField->ipfix_decode_bytes( out, fvalue8.get_length(), relay_f );	
 	uint8_t * valuebyte8b = fvalue8bResult.get_value_byte();
 	for (int i=0; i < 14; i++)
 		if (valuebyte8b[i] != valuebyte2[i]) equal = false;
@@ -416,13 +416,13 @@ void Mnslp_Ipfix_Field_Test::testFieldValues()
 		// Test without encoding
 	relay_f = 1;
 	tmpField->ipfix_encode_float( fvalue9, out, relay_f );
-	mnslp_ipfix_value_field fvalue9aResult = tmpField->ipfix_decode_float( out, fvalue9.getLength(), relay_f );	
+	mnslp_ipfix_value_field fvalue9aResult = tmpField->ipfix_decode_float( out, fvalue9.get_length(), relay_f );	
 	CPPUNIT_ASSERT( (uint64_t) 87654321 == fvalue9aResult.get_value_int64() );
 		
 		// Test with encoding
 	relay_f = 0;
 	tmpField->ipfix_encode_float( fvalue9, out, relay_f );
-	mnslp_ipfix_value_field fvalue9bResult = tmpField->ipfix_decode_int( out, fvalue9.getLength(), relay_f );	
+	mnslp_ipfix_value_field fvalue9bResult = tmpField->ipfix_decode_int( out, fvalue9.get_length(), relay_f );	
 	CPPUNIT_ASSERT( (uint64_t) 87654321 == fvalue9bResult.get_value_int64() );
 		
 	
@@ -441,7 +441,6 @@ void Mnslp_Ipfix_Field_Test::testExceptionInt1()
 	// Int 1
 	tmpField = field_container.get_field( 0, IPFIX_FT_IGMPTYPE );
 	mnslp_ipfix_value_field fvalue1 = tmpField->get_ipfix_value_field(value16);
-	
 	
 }
 

@@ -37,9 +37,18 @@ namespace mnslp_ipfix
 {
 
 
-mnslp_ipfix_data_record::mnslp_ipfix_data_record()
+mnslp_ipfix_data_record::mnslp_ipfix_data_record(uint16_t _template_id):
+template_id(_template_id)
 {
 
+}
+
+mnslp_ipfix_data_record::mnslp_ipfix_data_record(const mnslp_ipfix_data_record &param)
+{
+
+	template_id = param.template_id;
+	field_data = param.field_data;
+	
 }
 
 mnslp_ipfix_data_record::~mnslp_ipfix_data_record()
@@ -126,6 +135,56 @@ mnslp_ipfix_data_record::to_string()
          strToReturn.append((iter->second).to_string());
     }
     return strToReturn;
+}
+
+bool 
+mnslp_ipfix_data_record::operator== (mnslp_ipfix_data_record& rhs)
+{
+
+	std::map<mnslp_ipfix_field_key, mnslp_ipfix_value_field>::iterator iter;
+	for (iter = field_data.begin(); iter != field_data.end(); ++iter) {
+		mnslp_ipfix_field_key key = iter->first;
+		mnslp_ipfix_value_field tmp = rhs.get_field(key);
+		mnslp_ipfix_value_field tmp2 = iter->second;
+		if (tmp != tmp2){
+			return false;
+		}
+	}
+	return true;
+}
+
+
+mnslp_ipfix_data_record& 
+mnslp_ipfix_data_record::operator= (mnslp_ipfix_data_record& rhs)
+{
+	// Delete all field values in the container.
+	field_data.clear();
+	
+	template_id = rhs.template_id;
+	field_data = rhs.field_data;
+	
+	return *this;
+
+}
+
+bool 
+mnslp_ipfix_data_record::operator!= (mnslp_ipfix_data_record& rhs)
+{
+
+	std::map<mnslp_ipfix_field_key, mnslp_ipfix_value_field>::iterator iter;
+	for (iter = field_data.begin(); iter != field_data.end(); ++iter) {
+		std::cout << "we are in != operator data record" << std::endl;
+		mnslp_ipfix_field_key key = iter->first;
+		mnslp_ipfix_value_field tmp = rhs.get_field(key);
+		mnslp_ipfix_value_field tmp2 = iter->second;
+		if (tmp != tmp2){
+			std::cout << "Key:" << key.to_string() << "field 1:" 
+					  << tmp.to_string() << " field 2:" 
+					  << tmp2.to_string() << std::endl;
+			return true;
+		}
+	}
+	return false;
 }
 
 }
