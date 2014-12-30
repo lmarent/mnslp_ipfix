@@ -124,8 +124,8 @@ mnslp_ipfix_message.o: mnslp_ipfix_message.cpp /usr/include/stdio.h \
  /usr/include/c++/4.6/bits/locale_facets.tcc \
  /usr/include/c++/4.6/bits/basic_ios.tcc \
  /usr/include/c++/4.6/bits/ostream.tcc /usr/include/c++/4.6/istream \
- /usr/include/c++/4.6/bits/istream.tcc /usr/include/fcntl.h \
- /usr/include/i386-linux-gnu/bits/fcntl.h \
+ /usr/include/c++/4.6/bits/istream.tcc /usr/include/c++/4.6/stdexcept \
+ /usr/include/fcntl.h /usr/include/i386-linux-gnu/bits/fcntl.h \
  /usr/include/i386-linux-gnu/bits/stat.h \
  /usr/include/i386-linux-gnu/bits/fcntl2.h /usr/include/netdb.h \
  /usr/include/rpc/netdb.h /usr/include/i386-linux-gnu/bits/netdb.h \
@@ -136,9 +136,9 @@ mnslp_ipfix_message.o: mnslp_ipfix_message.cpp /usr/include/stdio.h \
  /usr/include/c++/4.6/bits/stl_bvector.h \
  /usr/include/c++/4.6/bits/vector.tcc /usr/include/inttypes.h \
  ../include/ipfix_def.h /usr/include/c++/4.6/cstddef \
- ../include/mnslp_ipfix_exception.h ../include/mnslp_ipfix_message.h \
- /usr/include/c++/4.6/map /usr/include/c++/4.6/bits/stl_tree.h \
- /usr/include/c++/4.6/bits/stl_map.h \
+ ../include/mnslp_ipfix_exception.h /usr/include/c++/4.6/bitset \
+ ../include/mnslp_ipfix_message.h /usr/include/c++/4.6/map \
+ /usr/include/c++/4.6/bits/stl_tree.h /usr/include/c++/4.6/bits/stl_map.h \
  /usr/include/c++/4.6/bits/stl_multimap.h ../include/mnslp_ipfix_fields.h \
  ../include/mnslp_ipfix_data_record.h ../include/mnslp_ipfix_templates.h \
  ../include/mnslp_ipfix_data_record.h ../include/mnslp_ipfix_exception.h
@@ -473,6 +473,8 @@ mnslp_ipfix_message.o: mnslp_ipfix_message.cpp /usr/include/stdio.h \
 
 /usr/include/c++/4.6/bits/istream.tcc:
 
+/usr/include/c++/4.6/stdexcept:
+
 /usr/include/fcntl.h:
 
 /usr/include/i386-linux-gnu/bits/fcntl.h:
@@ -508,6 +510,8 @@ mnslp_ipfix_message.o: mnslp_ipfix_message.cpp /usr/include/stdio.h \
 /usr/include/c++/4.6/cstddef:
 
 ../include/mnslp_ipfix_exception.h:
+
+/usr/include/c++/4.6/bitset:
 
 ../include/mnslp_ipfix_message.h:
 

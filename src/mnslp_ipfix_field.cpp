@@ -458,25 +458,34 @@ mnslp_ipfix_value_field
 mnslp_ipfix_field::decode( uint8_t *in, 
 						   size_t len, int relay_f)
 {
+	    std::cout << "field name:" << field_type.name << std::endl;
+	    
 	    if ( field_type.coding == IPFIX_CODING_INT ) {
+			std::cout << "decode int" << std::endl;
             return ipfix_decode_int(in, len, relay_f);
         }
         else if ( field_type.coding == IPFIX_CODING_UINT ) {
+            std::cout << "decode uint" << std::endl;
             return ipfix_decode_int(in, len, relay_f);
         }
         else if ( field_type.coding == IPFIX_CODING_NTP ) {
+            std::cout << "decode ntp" << std::endl;
             return ipfix_decode_int(in, len, relay_f);
         }
         else if ( field_type.coding == IPFIX_CODING_FLOAT ) {
+            std::cout << "decode float" << std::endl;
             return ipfix_decode_float(in, len, relay_f);
         }
         else if ( field_type.coding == IPFIX_CODING_IPADDR ) {
+            std::cout << "decode ipaddr" << std::endl;
             return ipfix_decode_bytes(in, len, relay_f);
         }
         else if ( field_type.coding == IPFIX_CODING_STRING ) {
+            std::cout << "decode string" << std::endl;
             return ipfix_decode_bytes(in, len, relay_f);
         }
         else {
+            std::cout << "decode bytes" << std::endl;
             return ipfix_decode_bytes(in, len, relay_f);
         }
 

@@ -63,7 +63,7 @@ class Mnslp_Ipfix_Message_Test : public CppUnit::TestFixture {
 void Mnslp_Ipfix_Message_Test::setUp() {
 	
 	int sourceid = 12345;
-	mes = new mnslp_ipfix_message_test(sourceid, IPFIX_VERSION, false);
+	mes = new mnslp_ipfix_message_test(sourceid, IPFIX_VERSION, true);
 }
 
 void Mnslp_Ipfix_Message_Test::testAddTemplate()
@@ -312,7 +312,7 @@ void Mnslp_Ipfix_Message_Test::testExportImport()
 	
 	std::cout << "offset:" << offset << std::endl;
 	
-	mnslp_ipfix_message_test msgb (message, offset, false);
+	mnslp_ipfix_message_test msgb (message, offset, true);
 	num_templates = msgb.get_num_templates();
 	CPPUNIT_ASSERT( num_templates == 1 );
 	

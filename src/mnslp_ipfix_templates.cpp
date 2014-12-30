@@ -35,11 +35,6 @@
 namespace mnslp_ipfix
 {
 
-#define TEMPLATE_READ16(b) ((*(b)<<8)|*((b)+1))
-#define TEMPLATE_READ32(b) ((((((*(b)<<8)|*(b+1))<<8)|(*(b+2)))<<8)|*(b+3))
-
-
-
 ipfix_template_field_t mnslp_ipfix_template::get_field(int i)
 {
 	if ( (i >= get_numfields()) || (i < 0) ){
@@ -101,14 +96,16 @@ void mnslp_ipfix_template::add_field(uint16_t _flength,
 bool
 mnslp_ipfix_template::operator== (mnslp_ipfix_template& rhs)
 {
+	
 	if (rhs.type != type)
 		return false;
-	
+		
 	if (rhs.tid != tid)	
 		return false;
-
+	
 	if (rhs.maxfields != maxfields)	
 		return false;
+		
 	try
 	{
 		for (int i = 0; i < datafields.size(); i++){
@@ -117,10 +114,11 @@ mnslp_ipfix_template::operator== (mnslp_ipfix_template& rhs)
 			if ( ( lfs_item.flength != rhs_item.flength) ||
 				 ( lfs_item.unknown_f != rhs_item.unknown_f) ||
 				 ( lfs_item.relay_f != rhs_item.relay_f) ||
-				 ( *(lfs_item.elem) != *(rhs_item.elem)))
+				 ( *(lfs_item.elem) != *(rhs_item.elem))){
 				return false;
+			}
 		}
-
+				
 		for (int j = 0; j < scopefields.size(); j++){
 			ipfix_template_field_t lfs_item = scopefields[j];
 			ipfix_template_field_t rhs_item = rhs.scopefields[j];
@@ -130,7 +128,7 @@ mnslp_ipfix_template::operator== (mnslp_ipfix_template& rhs)
 				 ( *(lfs_item.elem) != *(rhs_item.elem)))
 				return false;
 		}
-		
+				
 		return true;
 	
 	}
