@@ -8,7 +8,7 @@
 #include <cppunit/extensions/HelperMacros.h>
 
 #include "ipfix_def.h"
-#include "mnslp_ipfix_fields.h"
+#include "mnslp_ipfix_field.h"
 #include "mnslp_ipfix_data_record.h"
 #include <iostream>
 
@@ -50,9 +50,9 @@ class Mnslp_Ipfix_Data_Record_Test : public CppUnit::TestFixture {
 
   private:
     
-    mnslp_ipfix_field *ptrField1;
-    mnslp_ipfix_field *ptrField2;
-    mnslp_ipfix_field *ptrField3;
+    mnslp_ipfix_field field1;
+    mnslp_ipfix_field field2;
+    mnslp_ipfix_field field3;
     
     msnlp_ipfix_field_container field_container;
     mnslp_ipfix_data_record *data;
@@ -85,18 +85,18 @@ void Mnslp_Ipfix_Data_Record_Test::testAssign()
 	int num_field_length = 0;
 
 	// Int 1
-	ptrField1 = field_container.get_field( 0, IPFIX_FT_IGMPTYPE );
-	mnslp_ipfix_value_field fvalue1 = ptrField1->get_ipfix_value_field(value8);
+	field1 = field_container.get_field( 0, IPFIX_FT_IGMPTYPE );
+	mnslp_ipfix_value_field fvalue1 = field1.get_ipfix_value_field(value8);
 	data->insert_field(0, IPFIX_FT_IGMPTYPE, fvalue1);
 	
 	// Int 4
-	ptrField2 = field_container.get_field( 0, IPFIX_FT_INGRESSINTERFACE );
-	mnslp_ipfix_value_field fvalue2 = ptrField2->get_ipfix_value_field(value32);
+	field2 = field_container.get_field( 0, IPFIX_FT_INGRESSINTERFACE );
+	mnslp_ipfix_value_field fvalue2 = field2.get_ipfix_value_field(value32);
 	data->insert_field(0, IPFIX_FT_INGRESSINTERFACE, fvalue2);
 
     //Address 4
-	ptrField3 = field_container.get_field( 0, IPFIX_FT_SOURCEIPV4ADDRESS );
-	mnslp_ipfix_value_field fvalue3 = ptrField3->get_ipfix_value_field((uint8_t *) valuebyte0, 4);
+	field3 = field_container.get_field( 0, IPFIX_FT_SOURCEIPV4ADDRESS );
+	mnslp_ipfix_value_field fvalue3 = field3.get_ipfix_value_field((uint8_t *) valuebyte0, 4);
 	data->insert_field(0, IPFIX_FT_SOURCEIPV4ADDRESS, fvalue3);
 
 	num_fields = data->get_num_fields();

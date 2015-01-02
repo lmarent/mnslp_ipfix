@@ -49,11 +49,15 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__EXEEXT_1 = test_runner$(EXEEXT)
 am_test_runner_OBJECTS = mnslp_ipfix_field.$(OBJEXT) \
-	mnslp_ipfix_templates.$(OBJEXT) \
+	mnslp_ipfix_template.$(OBJEXT) \
 	mnslp_ipfix_data_record.$(OBJEXT) \
-	mnslp_ipfix_message.$(OBJEXT) mnslp_ipfix_field_test.$(OBJEXT) \
+	mnslp_ipfix_message.$(OBJEXT) ipfix_t.$(OBJEXT) \
+	mnslp_ipfix_field_test.$(OBJEXT) \
 	mnslp_ipfix_data_record_test.$(OBJEXT) \
-	mnslp_ipfix_message_test.$(OBJEXT) test_runner.$(OBJEXT)
+	mnslp_ipfix_template_test.$(OBJEXT) \
+	mnslp_ipfix_container_template_test.$(OBJEXT) \
+	ipfix_t_test.$(OBJEXT) mnslp_ipfix_message_test.$(OBJEXT) \
+	test_runner.$(OBJEXT)
 test_runner_OBJECTS = $(am_test_runner_OBJECTS)
 test_runner_LDADD = $(LDADD)
 test_runner_DEPENDENCIES =
@@ -204,11 +208,15 @@ top_builddir = ..
 top_srcdir = ..
 AUTOMAKE_OPTIONS = foreign
 test_runner_SOURCES = ../src/mnslp_ipfix_field.cpp \
-					  ../src/mnslp_ipfix_templates.cpp \
+					  ../src/mnslp_ipfix_template.cpp \
 					  ../src/mnslp_ipfix_data_record.cpp \
 					  ../src/mnslp_ipfix_message.cpp \
+					  ../src/ipfix_t.cpp \
 					  ../test/mnslp_ipfix_field_test.cpp \
 					  ../test/mnslp_ipfix_data_record_test.cpp \
+					  ../test/mnslp_ipfix_template_test.cpp \
+					  ../test/mnslp_ipfix_container_template_test.cpp \
+					  ../test/ipfix_t_test.cpp \
 					  ../test/mnslp_ipfix_message_test.cpp \
 					  ../test/test_runner.cpp
 
@@ -270,13 +278,17 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+include ./$(DEPDIR)/ipfix_t.Po
+include ./$(DEPDIR)/ipfix_t_test.Po
+include ./$(DEPDIR)/mnslp_ipfix_container_template_test.Po
 include ./$(DEPDIR)/mnslp_ipfix_data_record.Po
 include ./$(DEPDIR)/mnslp_ipfix_data_record_test.Po
 include ./$(DEPDIR)/mnslp_ipfix_field.Po
 include ./$(DEPDIR)/mnslp_ipfix_field_test.Po
 include ./$(DEPDIR)/mnslp_ipfix_message.Po
 include ./$(DEPDIR)/mnslp_ipfix_message_test.Po
-include ./$(DEPDIR)/mnslp_ipfix_templates.Po
+include ./$(DEPDIR)/mnslp_ipfix_template.Po
+include ./$(DEPDIR)/mnslp_ipfix_template_test.Po
 include ./$(DEPDIR)/test_runner.Po
 
 .cpp.o:
@@ -314,19 +326,19 @@ mnslp_ipfix_field.obj: ../src/mnslp_ipfix_field.cpp
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
 #	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mnslp_ipfix_field.obj `if test -f '../src/mnslp_ipfix_field.cpp'; then $(CYGPATH_W) '../src/mnslp_ipfix_field.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/mnslp_ipfix_field.cpp'; fi`
 
-mnslp_ipfix_templates.o: ../src/mnslp_ipfix_templates.cpp
-	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mnslp_ipfix_templates.o -MD -MP -MF $(DEPDIR)/mnslp_ipfix_templates.Tpo -c -o mnslp_ipfix_templates.o `test -f '../src/mnslp_ipfix_templates.cpp' || echo '$(srcdir)/'`../src/mnslp_ipfix_templates.cpp
-	$(am__mv) $(DEPDIR)/mnslp_ipfix_templates.Tpo $(DEPDIR)/mnslp_ipfix_templates.Po
-#	source='../src/mnslp_ipfix_templates.cpp' object='mnslp_ipfix_templates.o' libtool=no \
+mnslp_ipfix_template.o: ../src/mnslp_ipfix_template.cpp
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mnslp_ipfix_template.o -MD -MP -MF $(DEPDIR)/mnslp_ipfix_template.Tpo -c -o mnslp_ipfix_template.o `test -f '../src/mnslp_ipfix_template.cpp' || echo '$(srcdir)/'`../src/mnslp_ipfix_template.cpp
+	$(am__mv) $(DEPDIR)/mnslp_ipfix_template.Tpo $(DEPDIR)/mnslp_ipfix_template.Po
+#	source='../src/mnslp_ipfix_template.cpp' object='mnslp_ipfix_template.o' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mnslp_ipfix_templates.o `test -f '../src/mnslp_ipfix_templates.cpp' || echo '$(srcdir)/'`../src/mnslp_ipfix_templates.cpp
+#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mnslp_ipfix_template.o `test -f '../src/mnslp_ipfix_template.cpp' || echo '$(srcdir)/'`../src/mnslp_ipfix_template.cpp
 
-mnslp_ipfix_templates.obj: ../src/mnslp_ipfix_templates.cpp
-	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mnslp_ipfix_templates.obj -MD -MP -MF $(DEPDIR)/mnslp_ipfix_templates.Tpo -c -o mnslp_ipfix_templates.obj `if test -f '../src/mnslp_ipfix_templates.cpp'; then $(CYGPATH_W) '../src/mnslp_ipfix_templates.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/mnslp_ipfix_templates.cpp'; fi`
-	$(am__mv) $(DEPDIR)/mnslp_ipfix_templates.Tpo $(DEPDIR)/mnslp_ipfix_templates.Po
-#	source='../src/mnslp_ipfix_templates.cpp' object='mnslp_ipfix_templates.obj' libtool=no \
+mnslp_ipfix_template.obj: ../src/mnslp_ipfix_template.cpp
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mnslp_ipfix_template.obj -MD -MP -MF $(DEPDIR)/mnslp_ipfix_template.Tpo -c -o mnslp_ipfix_template.obj `if test -f '../src/mnslp_ipfix_template.cpp'; then $(CYGPATH_W) '../src/mnslp_ipfix_template.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/mnslp_ipfix_template.cpp'; fi`
+	$(am__mv) $(DEPDIR)/mnslp_ipfix_template.Tpo $(DEPDIR)/mnslp_ipfix_template.Po
+#	source='../src/mnslp_ipfix_template.cpp' object='mnslp_ipfix_template.obj' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mnslp_ipfix_templates.obj `if test -f '../src/mnslp_ipfix_templates.cpp'; then $(CYGPATH_W) '../src/mnslp_ipfix_templates.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/mnslp_ipfix_templates.cpp'; fi`
+#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mnslp_ipfix_template.obj `if test -f '../src/mnslp_ipfix_template.cpp'; then $(CYGPATH_W) '../src/mnslp_ipfix_template.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/mnslp_ipfix_template.cpp'; fi`
 
 mnslp_ipfix_data_record.o: ../src/mnslp_ipfix_data_record.cpp
 	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mnslp_ipfix_data_record.o -MD -MP -MF $(DEPDIR)/mnslp_ipfix_data_record.Tpo -c -o mnslp_ipfix_data_record.o `test -f '../src/mnslp_ipfix_data_record.cpp' || echo '$(srcdir)/'`../src/mnslp_ipfix_data_record.cpp
@@ -356,6 +368,20 @@ mnslp_ipfix_message.obj: ../src/mnslp_ipfix_message.cpp
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
 #	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mnslp_ipfix_message.obj `if test -f '../src/mnslp_ipfix_message.cpp'; then $(CYGPATH_W) '../src/mnslp_ipfix_message.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/mnslp_ipfix_message.cpp'; fi`
 
+ipfix_t.o: ../src/ipfix_t.cpp
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ipfix_t.o -MD -MP -MF $(DEPDIR)/ipfix_t.Tpo -c -o ipfix_t.o `test -f '../src/ipfix_t.cpp' || echo '$(srcdir)/'`../src/ipfix_t.cpp
+	$(am__mv) $(DEPDIR)/ipfix_t.Tpo $(DEPDIR)/ipfix_t.Po
+#	source='../src/ipfix_t.cpp' object='ipfix_t.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ipfix_t.o `test -f '../src/ipfix_t.cpp' || echo '$(srcdir)/'`../src/ipfix_t.cpp
+
+ipfix_t.obj: ../src/ipfix_t.cpp
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ipfix_t.obj -MD -MP -MF $(DEPDIR)/ipfix_t.Tpo -c -o ipfix_t.obj `if test -f '../src/ipfix_t.cpp'; then $(CYGPATH_W) '../src/ipfix_t.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/ipfix_t.cpp'; fi`
+	$(am__mv) $(DEPDIR)/ipfix_t.Tpo $(DEPDIR)/ipfix_t.Po
+#	source='../src/ipfix_t.cpp' object='ipfix_t.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ipfix_t.obj `if test -f '../src/ipfix_t.cpp'; then $(CYGPATH_W) '../src/ipfix_t.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/ipfix_t.cpp'; fi`
+
 mnslp_ipfix_field_test.o: ../test/mnslp_ipfix_field_test.cpp
 	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mnslp_ipfix_field_test.o -MD -MP -MF $(DEPDIR)/mnslp_ipfix_field_test.Tpo -c -o mnslp_ipfix_field_test.o `test -f '../test/mnslp_ipfix_field_test.cpp' || echo '$(srcdir)/'`../test/mnslp_ipfix_field_test.cpp
 	$(am__mv) $(DEPDIR)/mnslp_ipfix_field_test.Tpo $(DEPDIR)/mnslp_ipfix_field_test.Po
@@ -383,6 +409,48 @@ mnslp_ipfix_data_record_test.obj: ../test/mnslp_ipfix_data_record_test.cpp
 #	source='../test/mnslp_ipfix_data_record_test.cpp' object='mnslp_ipfix_data_record_test.obj' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
 #	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mnslp_ipfix_data_record_test.obj `if test -f '../test/mnslp_ipfix_data_record_test.cpp'; then $(CYGPATH_W) '../test/mnslp_ipfix_data_record_test.cpp'; else $(CYGPATH_W) '$(srcdir)/../test/mnslp_ipfix_data_record_test.cpp'; fi`
+
+mnslp_ipfix_template_test.o: ../test/mnslp_ipfix_template_test.cpp
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mnslp_ipfix_template_test.o -MD -MP -MF $(DEPDIR)/mnslp_ipfix_template_test.Tpo -c -o mnslp_ipfix_template_test.o `test -f '../test/mnslp_ipfix_template_test.cpp' || echo '$(srcdir)/'`../test/mnslp_ipfix_template_test.cpp
+	$(am__mv) $(DEPDIR)/mnslp_ipfix_template_test.Tpo $(DEPDIR)/mnslp_ipfix_template_test.Po
+#	source='../test/mnslp_ipfix_template_test.cpp' object='mnslp_ipfix_template_test.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mnslp_ipfix_template_test.o `test -f '../test/mnslp_ipfix_template_test.cpp' || echo '$(srcdir)/'`../test/mnslp_ipfix_template_test.cpp
+
+mnslp_ipfix_template_test.obj: ../test/mnslp_ipfix_template_test.cpp
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mnslp_ipfix_template_test.obj -MD -MP -MF $(DEPDIR)/mnslp_ipfix_template_test.Tpo -c -o mnslp_ipfix_template_test.obj `if test -f '../test/mnslp_ipfix_template_test.cpp'; then $(CYGPATH_W) '../test/mnslp_ipfix_template_test.cpp'; else $(CYGPATH_W) '$(srcdir)/../test/mnslp_ipfix_template_test.cpp'; fi`
+	$(am__mv) $(DEPDIR)/mnslp_ipfix_template_test.Tpo $(DEPDIR)/mnslp_ipfix_template_test.Po
+#	source='../test/mnslp_ipfix_template_test.cpp' object='mnslp_ipfix_template_test.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mnslp_ipfix_template_test.obj `if test -f '../test/mnslp_ipfix_template_test.cpp'; then $(CYGPATH_W) '../test/mnslp_ipfix_template_test.cpp'; else $(CYGPATH_W) '$(srcdir)/../test/mnslp_ipfix_template_test.cpp'; fi`
+
+mnslp_ipfix_container_template_test.o: ../test/mnslp_ipfix_container_template_test.cpp
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mnslp_ipfix_container_template_test.o -MD -MP -MF $(DEPDIR)/mnslp_ipfix_container_template_test.Tpo -c -o mnslp_ipfix_container_template_test.o `test -f '../test/mnslp_ipfix_container_template_test.cpp' || echo '$(srcdir)/'`../test/mnslp_ipfix_container_template_test.cpp
+	$(am__mv) $(DEPDIR)/mnslp_ipfix_container_template_test.Tpo $(DEPDIR)/mnslp_ipfix_container_template_test.Po
+#	source='../test/mnslp_ipfix_container_template_test.cpp' object='mnslp_ipfix_container_template_test.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mnslp_ipfix_container_template_test.o `test -f '../test/mnslp_ipfix_container_template_test.cpp' || echo '$(srcdir)/'`../test/mnslp_ipfix_container_template_test.cpp
+
+mnslp_ipfix_container_template_test.obj: ../test/mnslp_ipfix_container_template_test.cpp
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mnslp_ipfix_container_template_test.obj -MD -MP -MF $(DEPDIR)/mnslp_ipfix_container_template_test.Tpo -c -o mnslp_ipfix_container_template_test.obj `if test -f '../test/mnslp_ipfix_container_template_test.cpp'; then $(CYGPATH_W) '../test/mnslp_ipfix_container_template_test.cpp'; else $(CYGPATH_W) '$(srcdir)/../test/mnslp_ipfix_container_template_test.cpp'; fi`
+	$(am__mv) $(DEPDIR)/mnslp_ipfix_container_template_test.Tpo $(DEPDIR)/mnslp_ipfix_container_template_test.Po
+#	source='../test/mnslp_ipfix_container_template_test.cpp' object='mnslp_ipfix_container_template_test.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mnslp_ipfix_container_template_test.obj `if test -f '../test/mnslp_ipfix_container_template_test.cpp'; then $(CYGPATH_W) '../test/mnslp_ipfix_container_template_test.cpp'; else $(CYGPATH_W) '$(srcdir)/../test/mnslp_ipfix_container_template_test.cpp'; fi`
+
+ipfix_t_test.o: ../test/ipfix_t_test.cpp
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ipfix_t_test.o -MD -MP -MF $(DEPDIR)/ipfix_t_test.Tpo -c -o ipfix_t_test.o `test -f '../test/ipfix_t_test.cpp' || echo '$(srcdir)/'`../test/ipfix_t_test.cpp
+	$(am__mv) $(DEPDIR)/ipfix_t_test.Tpo $(DEPDIR)/ipfix_t_test.Po
+#	source='../test/ipfix_t_test.cpp' object='ipfix_t_test.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ipfix_t_test.o `test -f '../test/ipfix_t_test.cpp' || echo '$(srcdir)/'`../test/ipfix_t_test.cpp
+
+ipfix_t_test.obj: ../test/ipfix_t_test.cpp
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ipfix_t_test.obj -MD -MP -MF $(DEPDIR)/ipfix_t_test.Tpo -c -o ipfix_t_test.obj `if test -f '../test/ipfix_t_test.cpp'; then $(CYGPATH_W) '../test/ipfix_t_test.cpp'; else $(CYGPATH_W) '$(srcdir)/../test/ipfix_t_test.cpp'; fi`
+	$(am__mv) $(DEPDIR)/ipfix_t_test.Tpo $(DEPDIR)/ipfix_t_test.Po
+#	source='../test/ipfix_t_test.cpp' object='ipfix_t_test.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ipfix_t_test.obj `if test -f '../test/ipfix_t_test.cpp'; then $(CYGPATH_W) '../test/ipfix_t_test.cpp'; else $(CYGPATH_W) '$(srcdir)/../test/ipfix_t_test.cpp'; fi`
 
 mnslp_ipfix_message_test.o: ../test/mnslp_ipfix_message_test.cpp
 	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mnslp_ipfix_message_test.o -MD -MP -MF $(DEPDIR)/mnslp_ipfix_message_test.Tpo -c -o mnslp_ipfix_message_test.o `test -f '../test/mnslp_ipfix_message_test.cpp' || echo '$(srcdir)/'`../test/mnslp_ipfix_message_test.cpp

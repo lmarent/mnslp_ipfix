@@ -94,9 +94,27 @@ mnslp_ipfix_data_record::get_field(mnslp_ipfix_field_key &param)
 }
 
 mnslp_ipfix_value_field 
+mnslp_ipfix_data_record::get_field(const mnslp_ipfix_field_key &param) const
+{
+	std::map<mnslp_ipfix_field_key, mnslp_ipfix_value_field>::const_iterator it;
+	it=field_data.find(param);
+	if (it == field_data.end())
+		throw mnslp_ipfix_bad_argument("Parameter field was not found");
+	else	
+		return it->second;
+}
+
+mnslp_ipfix_value_field 
 mnslp_ipfix_data_record::get_field(int eno, int ftype)
 {
 	mnslp_ipfix_field_key key = mnslp_ipfix_field_key(eno, ftype);
+	return get_field(key);
+}
+
+mnslp_ipfix_value_field 
+mnslp_ipfix_data_record::get_field(int eno, int ftype) const
+{
+	const mnslp_ipfix_field_key key = mnslp_ipfix_field_key(eno, ftype);
 	return get_field(key);
 }
 
@@ -138,14 +156,14 @@ mnslp_ipfix_data_record::to_string()
 }
 
 bool 
-mnslp_ipfix_data_record::operator== (mnslp_ipfix_data_record& rhs)
+mnslp_ipfix_data_record::operator== (const mnslp_ipfix_data_record& rhs) const
 {
 
-	std::map<mnslp_ipfix_field_key, mnslp_ipfix_value_field>::iterator iter;
+	std::map<mnslp_ipfix_field_key, mnslp_ipfix_value_field>::const_iterator iter;
 	for (iter = field_data.begin(); iter != field_data.end(); ++iter) {
 		mnslp_ipfix_field_key key = iter->first;
-		mnslp_ipfix_value_field tmp = rhs.get_field(key);
-		mnslp_ipfix_value_field tmp2 = iter->second;
+		const mnslp_ipfix_value_field tmp = rhs.get_field(key);
+		const mnslp_ipfix_value_field tmp2 = iter->second;
 		if (tmp != tmp2){
 			return false;
 		}
@@ -155,7 +173,7 @@ mnslp_ipfix_data_record::operator== (mnslp_ipfix_data_record& rhs)
 
 
 mnslp_ipfix_data_record& 
-mnslp_ipfix_data_record::operator= (mnslp_ipfix_data_record& rhs)
+mnslp_ipfix_data_record::operator= (const mnslp_ipfix_data_record& rhs)
 {
 	// Delete all field values in the container.
 	field_data.clear();
@@ -168,10 +186,10 @@ mnslp_ipfix_data_record::operator= (mnslp_ipfix_data_record& rhs)
 }
 
 bool 
-mnslp_ipfix_data_record::operator!= (mnslp_ipfix_data_record& rhs)
+mnslp_ipfix_data_record::operator!= (const mnslp_ipfix_data_record& rhs) const
 {
 
-	std::map<mnslp_ipfix_field_key, mnslp_ipfix_value_field>::iterator iter;
+	std::map<mnslp_ipfix_field_key, mnslp_ipfix_value_field>::const_iterator iter;
 	for (iter = field_data.begin(); iter != field_data.end(); ++iter) {
 		std::cout << "we are in != operator data record" << std::endl;
 		mnslp_ipfix_field_key key = iter->first;

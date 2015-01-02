@@ -28,7 +28,7 @@ mnslp_ipfix_data_record.o: mnslp_ipfix_data_record.cpp \
  /usr/include/c++/4.6/bits/stl_map.h \
  /usr/include/c++/4.6/initializer_list \
  /usr/include/c++/4.6/bits/stl_multimap.h \
- /usr/include/c++/4.6/bits/range_access.h ../include/mnslp_ipfix_fields.h \
+ /usr/include/c++/4.6/bits/range_access.h ../include/mnslp_ipfix_field.h \
  /usr/include/c++/4.6/vector /usr/include/c++/4.6/bits/stl_construct.h \
  /usr/include/c++/4.6/bits/stl_uninitialized.h \
  /usr/include/c++/4.6/bits/stl_vector.h \
@@ -186,7 +186,7 @@ mnslp_ipfix_data_record.o: mnslp_ipfix_data_record.cpp \
 
 /usr/include/c++/4.6/bits/range_access.h:
 
-../include/mnslp_ipfix_fields.h:
+../include/mnslp_ipfix_field.h:
 
 /usr/include/c++/4.6/vector:
 

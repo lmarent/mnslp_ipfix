@@ -1,4 +1,4 @@
-mnslp_ipfix_field_test.o: ../test/mnslp_ipfix_field_test.cpp \
+mnslp_ipfix_template_test.o: ../test/mnslp_ipfix_template_test.cpp \
  /usr/include/cppunit/TestCase.h /usr/include/cppunit/Portability.h \
  /usr/include/cppunit/config-auto.h \
  /usr/include/cppunit/config/CppUnitApi.h \
@@ -154,7 +154,8 @@ mnslp_ipfix_field_test.o: ../test/mnslp_ipfix_field_test.cpp \
  /usr/include/asm-generic/sockios.h \
  /usr/include/i386-linux-gnu/bits/socket2.h /usr/include/netinet/in.h \
  /usr/include/i386-linux-gnu/bits/in.h ../include/ipfix_def.h \
- ../include/mnslp_ipfix_exception.h
+ ../include/mnslp_ipfix_exception.h ../include/mnslp_ipfix_template.h \
+ ../include/mnslp_ipfix_field.h
 
 /usr/include/cppunit/TestCase.h:
 
@@ -559,3 +560,7 @@ mnslp_ipfix_field_test.o: ../test/mnslp_ipfix_field_test.cpp \
 ../include/ipfix_def.h:
 
 ../include/mnslp_ipfix_exception.h:
+
+../include/mnslp_ipfix_template.h:
+
+../include/mnslp_ipfix_field.h:

@@ -46,7 +46,8 @@
 #include <fcntl.h>
 #include <netdb.h>
 
-#include "mnslp_ipfix_fields.h"
+#include "ipfix_t.h"
+#include "mnslp_ipfix_field.h"
 #ifdef SSLSUPPORT
 #include "ipfix_ssl.h"
 #endif
@@ -84,13 +85,19 @@ namespace mnslp_ipfix
 	    { memcpy((&val),b,4); } 
 
 
-// #define READ16(b) ((*(b)<<8)|*((b)+1))
 #define READ16(val,b) \
         { uint16_t _t; memcpy((&_t),b,2); val= ntohs(_t); }
-//#define READ32(b) ((((((*(b)<<8)|*(b+1))<<8)|(*(b+2)))<<8)|*(b+3))
+
 #define READ32(val,b) \
 		{ uint32_t _t; memcpy((&_t),b,4); val = ntohl(_t); }
 
+mnslp_ipfix_message::mnslp_ipfix_message( ):
+		message(NULL), g_tstart(0), encode_network(true)
+{
+    
+    init( 0, IPFIX_VERSION );
+
+}
 
 mnslp_ipfix_message::mnslp_ipfix_message( int sourceid, int ipfix_version, bool _encode_network):
 		message(NULL), g_tstart(0), encode_network(_encode_network)
@@ -168,8 +175,6 @@ void mnslp_ipfix_message::allocate_additional_memory(size_t additional)
 	}
 }
 
-
-
 /**
  * name:        init()
  * parameters:
@@ -182,12 +187,9 @@ void mnslp_ipfix_message::init( int sourceid, int ipfix_version )
 
 	try
 	{
-		i = new ipfix_t;
+		i = new ipfix_t();
 		i->buffer = new char[IPFIX_DEFAULT_BUFLEN];
 		i->buffer_lenght = IPFIX_DEFAULT_BUFLEN;
-		i->cs_tid = 0;
-		i->cs_bytes = 0;
-		i->cs_header = NULL;
 	}
 	catch(std::bad_alloc& exc)
 	{
@@ -197,10 +199,7 @@ void mnslp_ipfix_message::init( int sourceid, int ipfix_version )
     }
 
     i->sourceid  = sourceid;
-    i->offset    = 0;
     i->version   = ipfix_version;
-    i->seqno     = 0;
-    i->nrecords  = 0;
     message = i;
 
 
@@ -213,43 +212,6 @@ void mnslp_ipfix_message::init( int sourceid, int ipfix_version )
     g_ipfix_fields.initialize_reverse();
 
 }
-
-
-/*
- * name:        new_data_template()
- * parameters:
- * return:      
- */
-uint16_t 
-mnslp_ipfix_message::new_data_template( int nfields )
-{
-    uint16_t templid;
-    mnslp_ipfix_template  *templ;
-
-    templid = new_template( nfields );
-    templ = message->templates.get_template(templid);
-    templ->set_type(DATA_TEMPLATE);
-    return templid;
-    
-}
-
-/*
- * name:        ipfix_new_option_template()
- * parameters:
- * return:      
- */
-uint16_t 
-mnslp_ipfix_message::new_option_template( int nfields )
-{
-    uint16_t templid;
-    mnslp_ipfix_template  *templ;
-
-    templid =  new_template( nfields );
-    templ = message->templates.get_template(templid);
-    templ->set_type(OPTION_TEMPLATE);
-    return templid;
-}
-
 
 /*
  * name:        new_template()
@@ -296,15 +258,48 @@ mnslp_ipfix_message::new_template( int nfields )
 
 }
 
+
+
+/*
+ * name:        new_data_template()
+ * parameters:
+ * return:      
+ */
+uint16_t 
+mnslp_ipfix_message::new_data_template( int nfields )
+{
+    uint16_t templid;
+    mnslp_ipfix_template *templ;
+
+    templid = new_template( nfields );
+    templ = message->templates.get_template(templid);
+    templ->set_type(DATA_TEMPLATE);
+    return templid;
+    
+}
+
+/*
+ * name:        ipfix_new_option_template()
+ * parameters:
+ * return:      
+ */
+uint16_t 
+mnslp_ipfix_message::new_option_template( int nfields )
+{
+    uint16_t templid;
+    mnslp_ipfix_template  *templ;
+
+    templid =  new_template( nfields );
+    templ = message->templates.get_template(templid);
+    templ->set_type(OPTION_TEMPLATE);
+    return templid;
+}
+
+
 mnslp_ipfix_field
 mnslp_ipfix_message::get_field_definition( int eno, int type )
 {
-	mnslp_ipfix_field *field = g_ipfix_fields.get_field(eno, type);
-	
-	if (field == NULL)
-		throw mnslp_ipfix_bad_argument("Field not found in the container");
-	else
-		return *field;
+	return g_ipfix_fields.get_field(eno, type);
 }
 
 
@@ -335,14 +330,12 @@ mnslp_ipfix_message::add_field(  uint16_t templid,
         /** set template field
          */
 
-        mnslp_ipfix_field * field = g_ipfix_fields.get_field(eno, type);
-        if (field==NULL)
-            throw mnslp_ipfix_bad_argument("Field not found in the container");
+        mnslp_ipfix_field field = g_ipfix_fields.get_field(eno, type);
         
         if (encode_network)
-			templ->add_field(length,0,1,field);
+			templ->add_field(length,KNOWN,1,field);
 		else
-			templ->add_field(length,0,0,field);
+			templ->add_field(length,KNOWN,0,field);
     }
     else 
         throw mnslp_ipfix_bad_argument("Maximum number of field reach");
@@ -373,14 +366,12 @@ mnslp_ipfix_message::add_scope_field( uint16_t templid,
 
     if ( templ->get_numfields() < templ->get_maxfields() ) {
 
-        mnslp_ipfix_field * field = g_ipfix_fields.get_field(eno, type);
-        if (field==NULL) 
-            throw mnslp_ipfix_bad_argument("Field not found in the collection"); 
+        mnslp_ipfix_field field = g_ipfix_fields.get_field(eno, type);
         
          if (encode_network)
-			templ->add_field(length,0,1,field);
+			templ->add_field(length,KNOWN,1,field);
 		else
-			templ->add_field(length,0,0,field);
+			templ->add_field(length,KNOWN,0,field);
     }
     else 
         throw mnslp_ipfix_bad_argument("Maximum number of field reach");
@@ -472,6 +463,7 @@ void mnslp_ipfix_message::finish_cs( void )
 		INSERT_U16_NOENCODE( buf+buflen, buflen, message->cs_bytes );		
 	}
     message->cs_bytes = 0;
+    message->cs_offset = 0;
     message->cs_header = NULL;
     message->cs_tid = 0;
 }
@@ -534,14 +526,6 @@ void mnslp_ipfix_message::_write_hdr( void )
 			INSERTU16( message->buffer+buflen, buflen, message->version );
 			INSERTU16( message->buffer+buflen, buflen, message->offset + IPFIX_HDR_BYTES );
 			INSERTU32( message->buffer+buflen, buflen, now );
-			
-			// display bits belonging to now:
-			uint32_t _t2=htonl((now));
-			std::bitset<32> bits(_t2);
-			std::cout << "raw bits for now:" << bits.to_string() << std::endl << std::flush;
-			 
-			
-			
 			INSERTU32( message->buffer+buflen, buflen, message->nrecords );
 			INSERTU32( message->buffer+buflen, buflen, message->sourceid );
 		}
@@ -553,7 +537,6 @@ void mnslp_ipfix_message::_write_hdr( void )
 			INSERT_U32_NOENCODE( message->buffer+buflen, buflen, message->sourceid );		
 		}
 		message->length = message->offset + IPFIX_HDR_BYTES;
-		std::cout << "EXPORT TIME !!! " << now << "NRECORDS" << message->nrecords <<  std::endl;
 		message->exporttime = now;
 		message->offset += hsize;
 		
@@ -593,10 +576,12 @@ void mnslp_ipfix_message::_output_flush( void )
 void mnslp_ipfix_message::close( void )
 {
     if ( message )
-    {
-		delete (message->buffer);
         delete (message);
-    }
+   
+    std::cout << "closing the message" << std::endl;
+    g_ipfix_fields.clear();
+    data_list.clear();
+    std::cout << "closing the message" << std::endl;
 }
 
 
@@ -619,12 +604,12 @@ mnslp_ipfix_message::_write_template( mnslp_ipfix_template  *templ )
     if ( templ->get_type() == OPTION_TEMPLATE ) {
         for ( i=0, ssize=0; i<templ->get_number_scopefields(); i++ ) {
             ssize += 4;
-            if (templ->get_field(i).elem->get_field_type().eno != IPFIX_FT_NOENO)
+            if ((templ->get_field(i).elem).get_field_type().eno != IPFIX_FT_NOENO)
                 ssize += 4;
         }
         for ( osize=0; i<templ->get_numfields(); i++ ) {
             osize += 4;
-            if (templ->get_field(i).elem->get_field_type().eno != IPFIX_FT_NOENO)
+            if ((templ->get_field(i).elem).get_field_type().eno != IPFIX_FT_NOENO)
                 osize += 4;
         }
         tsize = 10 + osize + ssize;
@@ -632,7 +617,7 @@ mnslp_ipfix_message::_write_template( mnslp_ipfix_template  *templ )
     else {
         for ( tsize=8,i=0; i < templ->get_numfields(); i++ ) {
             tsize += 4;
-            if (templ->get_field(i).elem->get_field_type().eno != IPFIX_FT_NOENO)
+            if ((templ->get_field(i).elem).get_field_type().eno != IPFIX_FT_NOENO)
                 tsize += 4;
         }
     }
@@ -650,7 +635,8 @@ mnslp_ipfix_message::_write_template( mnslp_ipfix_template  *templ )
     {
          memmove( message->buffer + tsize, message->buffer, message->offset );
          if ( message->cs_tid )
-             message->cs_header += tsize;          
+             message->cs_header += tsize;
+             message->cs_offset += tsize;
     }
 
     buf = message->buffer;
@@ -728,27 +714,27 @@ mnslp_ipfix_message::_write_template( mnslp_ipfix_template  *templ )
     {
         n = templ->get_numfields();
         for ( i=0; i<templ->get_number_scopefields(); i++ ) {
-            if ( templ->get_field(i).elem->get_field_type().eno == IPFIX_FT_NOENO ) {
+            if ( (templ->get_field(i).elem).get_field_type().eno == IPFIX_FT_NOENO ) {
 				if (encode_network == true){
-					INSERTU16( buf+buflen, buflen, templ->get_field(i).elem->get_field_type().ftype );
+					INSERTU16( buf+buflen, buflen, (templ->get_field(i).elem).get_field_type().ftype );
 					INSERTU16( buf+buflen, buflen, templ->get_field(i).flength );
 				}
 				else{
-					INSERT_U16_NOENCODE( buf+buflen, buflen, templ->get_field(i).elem->get_field_type().ftype );
+					INSERT_U16_NOENCODE( buf+buflen, buflen, (templ->get_field(i).elem).get_field_type().ftype );
 					INSERT_U16_NOENCODE( buf+buflen, buflen, templ->get_field(i).flength );
 				}
             } 
             else {
-                tmp16 = templ->get_field(i).elem->get_field_type().ftype|IPFIX_EFT_VENDOR_BIT;
+                tmp16 = (templ->get_field(i).elem).get_field_type().ftype|IPFIX_EFT_VENDOR_BIT;
                 if (encode_network == true){
 					INSERTU16( buf+buflen, buflen, tmp16 );
 					INSERTU16( buf+buflen, buflen, templ->get_field(i).flength );
-					INSERTU32( buf+buflen, buflen, templ->get_field(i).elem->get_field_type().eno );
+					INSERTU32( buf+buflen, buflen, (templ->get_field(i).elem).get_field_type().eno );
 				}
 				else{
 					INSERT_U16_NOENCODE( buf+buflen, buflen, tmp16 );
 					INSERT_U16_NOENCODE( buf+buflen, buflen, templ->get_field(i).flength );
-					INSERT_U32_NOENCODE( buf+buflen, buflen, templ->get_field(i).elem->get_field_type().eno );					
+					INSERT_U32_NOENCODE( buf+buflen, buflen, (templ->get_field(i).elem).get_field_type().eno );					
 				}
             }
         }
@@ -761,32 +747,27 @@ mnslp_ipfix_message::_write_template( mnslp_ipfix_template  *templ )
     for ( ; i<templ->get_numfields(); i++ )
     {
         std::cout << "Field Num:" << i << std::endl;
-        if ( templ->get_field(i).elem->get_field_type().eno == IPFIX_FT_NOENO ) {
+        if ( (templ->get_field(i).elem).get_field_type().eno == IPFIX_FT_NOENO ) {
 			if (encode_network == true){
-				std::cout << "exportig field definition with encode" << std::endl;
-				INSERTU16( buf+buflen, buflen, templ->get_field(i).elem->get_field_type().ftype );
+				INSERTU16( buf+buflen, buflen, (templ->get_field(i).elem).get_field_type().ftype );
 				INSERTU16( buf+buflen, buflen, templ->get_field(i).flength );
 			}
 			else{
-				std::cout << "exportig field definition without encode" 
-						  << "field type:" << templ->get_field(i).elem->get_field_type().ftype 
-						  << std::endl;
-						  
-				INSERT_U16_NOENCODE( buf+buflen, buflen, templ->get_field(i).elem->get_field_type().ftype );
+				INSERT_U16_NOENCODE( buf+buflen, buflen, (templ->get_field(i).elem).get_field_type().ftype );
 				INSERT_U16_NOENCODE( buf+buflen, buflen, templ->get_field(i).flength );				
 			}
         } 
         else {
-            tmp16 = templ->get_field(i).elem->get_field_type().ftype|IPFIX_EFT_VENDOR_BIT;
+            tmp16 = (templ->get_field(i).elem).get_field_type().ftype|IPFIX_EFT_VENDOR_BIT;
             if (encode_network == true){
 				INSERTU16( buf+buflen, buflen, tmp16 );
 				INSERTU16( buf+buflen, buflen, templ->get_field(i).flength );
-				INSERTU32( buf+buflen, buflen, templ->get_field(i).elem->get_field_type().eno );
+				INSERTU32( buf+buflen, buflen, (templ->get_field(i).elem).get_field_type().eno );
 			}
 			else{
 				INSERT_U16_NOENCODE( buf+buflen, buflen, tmp16 );
 				INSERT_U16_NOENCODE( buf+buflen, buflen, templ->get_field(i).flength );
-				INSERT_U32_NOENCODE( buf+buflen, buflen, templ->get_field(i).elem->get_field_type().eno );				
+				INSERT_U32_NOENCODE( buf+buflen, buflen, (templ->get_field(i).elem).get_field_type().eno );				
 			}
         }
     }
@@ -847,8 +828,8 @@ mnslp_ipfix_message::output( uint16_t templid )
 			mnslp_ipfix_data_record g_data = data_list[data_index];
 			
 			for ( i=0; i < templ->get_numfields(); i++ ){
-				mnslp_ipfix_field_key field_key = mnslp_ipfix_field_key(templ->get_field(i).elem->get_field_type().eno, 
-																		templ->get_field(i).elem->get_field_type().ftype);
+				mnslp_ipfix_field_key field_key = mnslp_ipfix_field_key((templ->get_field(i).elem).get_field_type().eno, 
+																		(templ->get_field(i).elem).get_field_type().ftype);
 				if ( templ->get_field(i).flength == IPFIX_FT_VARLEN ) {
 					
 					if ( g_data.get_length(field_key) > 254 )
@@ -881,6 +862,7 @@ mnslp_ipfix_message::output( uint16_t templid )
 				// insert data set 
 				message->cs_bytes = 0;
 				message->cs_header = buf;
+				message->cs_offset = message->offset;
 				message->cs_tid = templ->get_template_id();
 				
 				
@@ -898,8 +880,8 @@ mnslp_ipfix_message::output( uint16_t templid )
 				
 				std::cout << "writing field:" << i << std::endl;
 				
-				mnslp_ipfix_field_key field_key = mnslp_ipfix_field_key(templ->get_field(i).elem->get_field_type().eno, 
-																		templ->get_field(i).elem->get_field_type().ftype);
+				mnslp_ipfix_field_key field_key = mnslp_ipfix_field_key((templ->get_field(i).elem).get_field_type().eno, 
+																		(templ->get_field(i).elem).get_field_type().ftype);
 				
 				if ( templ->get_field(i).flength == IPFIX_FT_VARLEN ) {
 					if ( g_data.get_length(field_key) > 254 ) {
@@ -918,9 +900,9 @@ mnslp_ipfix_message::output( uint16_t templid )
 					}
 				}
 				
-				templ->get_field(i).elem->encode( g_data.get_field(field_key), 
-												  buf+buflen, 
-												  templ->get_field(i).relay_f );
+				(templ->get_field(i).elem).encode( g_data.get_field(field_key), 
+												   buf+buflen, 
+												   templ->get_field(i).relay_f );
 
 				buflen += g_data.get_length(field_key);
 			}
@@ -961,13 +943,13 @@ mnslp_ipfix_message::include_data( uint16_t templid,
 }
 
 char * 
-mnslp_ipfix_message::get_message(void)
+mnslp_ipfix_message::get_message(void) const
 {
 	return message->buffer;
 }
 
 int 
-mnslp_ipfix_message::get_offset(void)
+mnslp_ipfix_message::get_offset(void) const
 {
 	return message->offset;
 }
@@ -991,7 +973,6 @@ mnslp_ipfix_message::mnslp_ipfix_parse_hdr( char *mes, int offset )
 {
     uint16_t _count, _length, _version;
     uint32_t _sysuptime, _unixtime, _exporttime, _seqno, _sourceid; 
-    uint32_t _exporttime2;
         
     std::string func = "mnslp_ipfix_parse_hdr";
     if (encode_network == true){
@@ -1047,14 +1028,7 @@ mnslp_ipfix_message::mnslp_ipfix_parse_hdr( char *mes, int offset )
 
 		  if (encode_network == true){
 		      READ16(_length, mes+2);
-		      READ32(_exporttime, mes+4);
-			
-			  READ32_NOENCODE(_exporttime2,mes+4);
-			  std::bitset<32> bits(_exporttime2);
-			  std::cout << "raw bits for now read:" << bits.to_string() << std::endl << std::flush;
-			  _exporttime2 = ntohl(_exporttime2);
-			  std::cout << "export time:" << _exporttime2 << std::endl << std::flush;
-		      
+		      READ32(_exporttime, mes+4);		      
 		      READ32(_seqno, mes+8);
 		      READ32(_sourceid, mes+12);
 		  }
@@ -1067,7 +1041,6 @@ mnslp_ipfix_message::mnslp_ipfix_parse_hdr( char *mes, int offset )
           std::cout << "header received" << _version 
 					<< "length:"         << _length
 					<< "exporttime:"	 << _exporttime
-					<< "exporttime2:"	 << _exporttime2
 					<< "seqno:"			 << _seqno
 					<< "sourceid:"		 << _sourceid << std::endl;
 
@@ -1097,13 +1070,13 @@ mnslp_ipfix_message::mnslp_ipfix_parse_hdr( char *mes, int offset )
  */
 void
 mnslp_ipfix_message::mnslp_ipfix_decode_trecord( int setid,
-								const char     *buf2,
-								size_t         len,
-								int            *nread )
+												 const char     *buf2,
+												 size_t         len,
+												 int            *nread )
 {
-    mnslp_ipfix_template *templ;
+    mnslp_ipfix_template *t;
     uint16_t          templid, nfields, nscopefields, ndatafields;
-    int               i, newnode =0;
+    int               i;
     size_t            offset;
     std::string       func = "ipfix_decode_trecord";
 
@@ -1204,39 +1177,31 @@ mnslp_ipfix_message::mnslp_ipfix_decode_trecord( int setid,
     /** 
      * gets template node ( create or obtain it from the message).
      */
-    mnslp_ipfix_template * t = message->templates.get_template(templid);
-    if ( (t == NULL)
-         || (nfields > t->get_numfields() ) ) {
-		
-		
-		
-        if ( t != NULL ){
-           // Replace the template.
-           message->templates.delete_template( templid );
-           delete(t);
-        }
-		/** alloc mem
-		*/
-		switch( setid ) {
-			case IPFIX_SETID_OPTTEMPLATE:
-			case IPFIX_SETID_OPTTEMPLATE_NF9:
-				std::cout << "creating a new option template" << std::endl;
-				templid = new_option_template(nfields);
-				break;
-			case IPFIX_SETID_TEMPLATE:
-			case IPFIX_SETID_TEMPLATE_NF9:
-				std::cout << "creating a new data template" << std::endl;
-				templid = new_data_template( nfields );
-				break;
-		}
-		t = message->templates.get_template(templid);	
-		newnode =1;
+    try
+    {
+		t = message->templates.get_template(templid);
+        // Replace the template.
+        message->templates.delete_template( templid );
     }
-    else {
-        newnode =0;
-        t->remove_unknown_fields();
-    }
-
+    catch(mnslp_ipfix_bad_argument bad){
+		// The template must be created
+	}	
+	
+	/** alloc mem
+	*/
+	switch( setid ) {
+		case IPFIX_SETID_OPTTEMPLATE:
+		case IPFIX_SETID_OPTTEMPLATE_NF9:
+			std::cout << "creating a new option template" << std::endl;
+			templid = new_option_template(nfields);
+			break;
+		case IPFIX_SETID_TEMPLATE:
+		case IPFIX_SETID_TEMPLATE_NF9:
+			std::cout << "creating a new data template" << std::endl;
+			templid = new_data_template( nfields );
+			break;
+	}
+	t = message->templates.get_template(templid);	
     t->set_id(templid);
     t->set_maxfields(nfields);
     
@@ -1256,12 +1221,7 @@ mnslp_ipfix_message::mnslp_ipfix_decode_trecord( int setid,
 	}
 	catch (mnslp_ipfix_bad_argument bad)
 	{
-		if ( newnode ) {
-			delete(t);
-		}
-		else {
-			message->templates.delete_template( t->get_template_id() );
-		}
+		message->templates.get_template(templid);
 		throw mnslp_ipfix_bad_argument("Could not read the template information"); 
 	}
 
@@ -1312,15 +1272,10 @@ mnslp_ipfix_message::read_field(mnslp_ipfix_template *templ,
     
     // Reads the field from the buffer.
     if (encode_network == true){
-		std::cout << "reading field with encoding" << std::endl;
-		
 		READ16(ftype, buf);
 		READ16(length, buf+2);
 	}
 	else{
-		
-		std::cout << "reading field without encoding" << std::endl;
-		
 		READ16_NOENCODE(ftype, buf);
 		READ16_NOENCODE(length, buf+2);		
 	}
@@ -1348,9 +1303,8 @@ mnslp_ipfix_message::read_field(mnslp_ipfix_template *templ,
 	
     try
     {
-        mnslp_ipfix_field * field = g_ipfix_fields.get_field(eno, (int) ftype);
-        unknown_f =0;
-        templ->add_field(length, unknown_f, relay_f, field);
+        mnslp_ipfix_field field = g_ipfix_fields.get_field(eno, (int) ftype);
+        templ->add_field(length, KNOWN, relay_f, field);
 		
 		
 		std::cout << "found the field:" << templ->get_numfields() 
@@ -1363,9 +1317,9 @@ mnslp_ipfix_message::read_field(mnslp_ipfix_template *templ,
 	{	
         /** unknown field -> generate node
          */
-        unknown_f =1;  /* mark node, so we can drop it later */
-        mnslp_ipfix_field * field = g_ipfix_fields.get_field(0, 0);
-        templ->add_field(length,unknown_f,relay_f,field);
+        /* mark node, so we can drop it later */
+        mnslp_ipfix_field field = g_ipfix_fields.get_field(0, 0);
+        templ->add_field(length, UNKNOWN, relay_f, field);
         std::cout << "No found the field" << std::endl;
 	}
 	
@@ -1429,20 +1383,18 @@ void mnslp_ipfix_message::mnslp_ipfix_decode_datarecord( mnslp_ipfix_template *t
 		
         mnslp_ipfix_value_field value;
         if (encode_network){
-			std::cout << "Here I am 1" << std::endl;
-			value = templ->get_field(i).elem->decode(p,len, 1);
+			value = (templ->get_field(i).elem).decode(p,len, 1);
 		}
 		else{
-			std::cout << "Here I am 2" << std::endl;
-			value = templ->get_field(i).elem->decode(p,len, 0);
+			value = (templ->get_field(i).elem).decode(p,len, 0);
 		}
 
-		templ->get_field(i).elem->snprint(salida, 30, value);
+		(templ->get_field(i).elem).snprint(salida, 30, value);
 		
 		std::cout << "value:" << salida << std::endl;
 		
-        g_data.insert_field(templ->get_field(i).elem->get_field_type().eno, 
-						    templ->get_field(i).elem->get_field_type().ftype, value); 
+        g_data.insert_field((templ->get_field(i).elem).get_field_type().eno, 
+						    (templ->get_field(i).elem).get_field_type().ftype, value); 
 						    
         p        += len;
         (*nread) += len;
@@ -1601,6 +1553,16 @@ mnslp_ipfix_message::mnslp_ipfix_import( char  *buffer,
         goto errend;
 
 end:
+    message->copy_raw_message(buffer, message_length);
+    
+    // Establishes correct values for the current data set.
+    if ( setid > 255 ){
+		message->cs_tid = setid;
+		message->cs_bytes = setlen;
+		message->cs_offset = nread - setlen;
+		message->cs_header = (u_int8_t *) message->buffer + message->cs_offset;
+	}
+    message->nrecords = data_list.size();
     return nread;
 
  errend:
@@ -1611,7 +1573,7 @@ end:
 
 
 bool 
-mnslp_ipfix_message::operator== (mnslp_ipfix_message& rhs)
+mnslp_ipfix_message::operator== (const mnslp_ipfix_message& rhs) const
 {
 		
 	if ((rhs.message == NULL) and (message == NULL))
@@ -1622,36 +1584,13 @@ mnslp_ipfix_message::operator== (mnslp_ipfix_message& rhs)
 
 	if ((rhs.message == NULL) and (message != NULL))
 		return false;
-		
-	// compare message header information.
-	if ((rhs.message != NULL) and (message != NULL))
-				
-		if ((rhs.message)->sourceid != message->sourceid)
-			return false;
-				
-		if ((rhs.message)->version != message->version)
-			return false;
-	
-		if ((rhs.message)->seqno != message->seqno)
-			return false;
-
-		if ((rhs.message)->seqno != message->seqno)
-			return false;
 			
-		if (message->version == IPFIX_VERSION_NF9)
-			if (((rhs.message)->count != message->count ) ||
-			   ((rhs.message)->sysuptime != message->sysuptime ) ||
-			   ((rhs.message)->unixtime != message->unixtime ))
-			   return false;
+	// compare message header information.
+	if ((rhs.message != NULL) and (message != NULL)){
 		
-		if (message->version == IPFIX_VERSION)
-			if (((rhs.message)->length != message->length) ||
-			   ((rhs.message)->exporttime != message->exporttime))
-			   return false;
-		
-		if (message->templates != rhs.message->templates)
+		if (*(rhs.message) != *message)
 			return false;
-		
+									
 		try
 		{
 			for (int i = 0; i < data_list.size(); i++){
@@ -1663,11 +1602,30 @@ mnslp_ipfix_message::operator== (mnslp_ipfix_message& rhs)
 		{
 			return false;
 		}
+	}
 		
-	
 	return true;
 			
 }
 
+/**
+* Assignment operator. 
+*/
+mnslp_ipfix_message &
+mnslp_ipfix_message::operator=(const mnslp_ipfix_message &other)
+{
+	std::cout << "estoy en operador assign" << std::endl;
+	
+	if (other.message != NULL)
+	   message = new ipfix_t(*other.message);
+	g_ipfix_fields = other.g_ipfix_fields;
+	g_tstart = other.g_tstart;
+	g_lasttid = other.g_lasttid;
+	data_list = other.data_list;
+	encode_network = other.encode_network;
+	
+	return *this;
+	
+}
 
 }

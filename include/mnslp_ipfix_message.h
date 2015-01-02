@@ -45,9 +45,10 @@
 
 
 #include "ipfix_def.h"
-#include "mnslp_ipfix_fields.h"
+#include "mnslp_ipfix_field.h"
 #include "mnslp_ipfix_data_record.h"
-#include "mnslp_ipfix_templates.h"
+#include "mnslp_ipfix_template.h"
+#include "ipfix_t.h"
 
 #ifndef ENOTSUP
 #define ENOTSUP EOPNOTSUPP
@@ -88,12 +89,10 @@ namespace mnslp_ipfix
  **   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  */   
 
-#define IPFIX_VERSION_NF9           0x09
 #define IPFIX_HDR_BYTES_NF9         20
 #define IPFIX_SETID_TEMPLATE_NF9    0
 #define IPFIX_SETID_OPTTEMPLATE_NF9 1
 
-#define IPFIX_VERSION               0x0A
 #define IPFIX_HDR_BYTES             16
 #define IPFIX_SETID_TEMPLATE        2
 #define IPFIX_SETID_OPTTEMPLATE     3
@@ -107,64 +106,6 @@ namespace mnslp_ipfix
 #define IPFIX_DFLT_TEMPLRESENDINT   30
 #define IPFIX_DFLT_TEMPLLIFETIME    300
 
-#define IPFIX_DEFAULT_BUFLEN 		1400
-
-/**
- * \class ipfix_t
- *
- *
- * \brief This class contains the raw information required for a messsage
- * 
- * \author Andres Marentes
- *
- * \version 0.1 
- *
- * \date 2014/12/18 9:57:00
- *
- * Contact: la.marentes455@uniandes.edu.co
- *  
- */
-class ipfix_t
-{
-    public: 
-		int              		 sourceid;    ///< domain id of the exporting process.
-		int              		 version;     ///< ipfix version to export.
-		mnslp_template_container templates;   ///< list of templates. 
-
-		char        *buffer;          		  ///< output buffer - the actual message when exported is put it here.
-		int         nrecords;        		  ///< no. of records in buffer.
-		size_t      offset;           		  ///< Number of bytes in the buffer, output buffer fill level.
-		int 		buffer_lenght;    		  ///< output buffer allocated length, it is readjusted as more memory is needed.
-		uint32_t    seqno;            		  ///< sequence no. of next message.
-
-		/* experimental */
-		int        cs_tid;            		  ///< template id of current dataset 
-		int        cs_bytes;          		  ///< size of current set
-		uint8_t    *cs_header;        		  ///< start of current set
-
-        /* -------   Header nf9 fields */
-        /* nf9 fields */
-        uint16_t   count;       			  ///< total number of record in this packet
-        uint32_t   sysuptime;   			  ///< sysuptime in milliseconds
-        uint32_t   unixtime;    			  ///< seconds since 1970 
-
-        /* Header ipfix fields */
-        uint16_t   length;      			  ///< total number of record in this packet
-        uint32_t   exporttime;  			  ///< seconds since 1970
-		
-
-	
-	/**
-	 * Constructor of the class
-	 */
-	inline ipfix_t(){}
-	
-	/**
-	 * Destructor of the class
-	 */
-	inline ~ipfix_t(){}
-
-};
 
 /**
  * \class export_fields_t
@@ -334,6 +275,13 @@ class mnslp_ipfix_message
 
 	   /**
 	    * Create a new class mnslp_ipfix_message
+	    * @param By default it sets the version in IPFIX and encode in true, 
+	    * 		    the source id is set to 0.
+	    */
+	   mnslp_ipfix_message();
+
+	   /**
+	    * Create a new class mnslp_ipfix_message
 	    * @param sourceid  		 - Device source id of the message 
 	    * 		 ipfix_version 	 - message version. 
 	    *  		 _encode_network - establish whether the message is going to be network encoded or not. 
@@ -436,12 +384,12 @@ class mnslp_ipfix_message
 	   /**
 	    * Get the internal buffer that was exported
 	    */
-	   char * get_message(void);
+	   char * get_message(void) const;
 
 	   /**
 	    * Get the length of the internal buffer that was exported
 	    */
-	   int get_offset(void);
+	   int get_offset(void) const;
 	   
 	   /**
 	   *  Equals to operator. 
@@ -449,7 +397,12 @@ class mnslp_ipfix_message
 	   *  data records, and the information inside is equal. The order in
 	   * the data records must be same too.
 	   */
-	   bool operator== (mnslp_ipfix_message& rhs);
+	   bool operator== (const mnslp_ipfix_message& rhs) const;
+
+	   /**
+	    * Assignment operator. 
+	    */
+	   mnslp_ipfix_message &operator=(const mnslp_ipfix_message &other);
 
 	   	   
 };

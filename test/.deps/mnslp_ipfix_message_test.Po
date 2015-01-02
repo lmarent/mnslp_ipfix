@@ -142,7 +142,7 @@ mnslp_ipfix_message_test.o: ../test/mnslp_ipfix_message_test.cpp \
  /usr/include/i386-linux-gnu/bits/stdlib.h \
  ../include/mnslp_ipfix_message.h /usr/include/inttypes.h \
  /usr/lib/gcc/i686-linux-gnu/4.6/include/stdint.h /usr/include/stdint.h \
- ../include/ipfix_def.h ../include/mnslp_ipfix_fields.h \
+ ../include/ipfix_def.h ../include/mnslp_ipfix_field.h \
  /usr/include/string.h /usr/include/i386-linux-gnu/bits/string3.h \
  /usr/include/i386-linux-gnu/sys/time.h \
  /usr/include/i386-linux-gnu/sys/socket.h \
@@ -156,8 +156,8 @@ mnslp_ipfix_message_test.o: ../test/mnslp_ipfix_message_test.cpp \
  /usr/include/asm-generic/sockios.h \
  /usr/include/i386-linux-gnu/bits/socket2.h /usr/include/netinet/in.h \
  /usr/include/i386-linux-gnu/bits/in.h ../include/mnslp_ipfix_exception.h \
- ../include/mnslp_ipfix_data_record.h ../include/mnslp_ipfix_templates.h \
- ../include/mnslp_ipfix_data_record.h
+ ../include/mnslp_ipfix_data_record.h ../include/mnslp_ipfix_template.h \
+ ../include/ipfix_t.h ../include/mnslp_ipfix_data_record.h
 
 /usr/include/cppunit/TestCase.h:
 
@@ -531,7 +531,7 @@ mnslp_ipfix_message_test.o: ../test/mnslp_ipfix_message_test.cpp \
 
 ../include/ipfix_def.h:
 
-../include/mnslp_ipfix_fields.h:
+../include/mnslp_ipfix_field.h:
 
 /usr/include/string.h:
 
@@ -567,6 +567,8 @@ mnslp_ipfix_message_test.o: ../test/mnslp_ipfix_message_test.cpp \
 
 ../include/mnslp_ipfix_data_record.h:
 
-../include/mnslp_ipfix_templates.h:
+../include/mnslp_ipfix_template.h:
+
+../include/ipfix_t.h:
 
 ../include/mnslp_ipfix_data_record.h:

@@ -1,5 +1,6 @@
-mnslp_ipfix_field.o: mnslp_ipfix_field.cpp ../include/mnslp_ipfix_field.h \
- /usr/include/c++/4.6/vector /usr/include/c++/4.6/bits/stl_algobase.h \
+ipfix_t.o: ../src/ipfix_t.cpp ../include/ipfix_t.h \
+ ../include/mnslp_ipfix_template.h /usr/include/c++/4.6/vector \
+ /usr/include/c++/4.6/bits/stl_algobase.h \
  /usr/include/c++/4.6/i686-linux-gnu/./bits/c++config.h \
  /usr/include/c++/4.6/i686-linux-gnu/./bits/os_defines.h \
  /usr/include/features.h /usr/include/i386-linux-gnu/bits/predefs.h \
@@ -27,8 +28,13 @@ mnslp_ipfix_field.o: mnslp_ipfix_field.cpp ../include/mnslp_ipfix_field.h \
  /usr/include/c++/4.6/initializer_list \
  /usr/include/c++/4.6/bits/stl_bvector.h \
  /usr/include/c++/4.6/bits/range_access.h \
- /usr/include/c++/4.6/bits/vector.tcc /usr/include/stdlib.h \
- /usr/lib/gcc/i686-linux-gnu/4.6/include/stddef.h \
+ /usr/include/c++/4.6/bits/vector.tcc /usr/include/c++/4.6/map \
+ /usr/include/c++/4.6/bits/stl_tree.h \
+ /usr/include/c++/4.6/bits/stl_function.h \
+ /usr/include/c++/4.6/backward/binders.h \
+ /usr/include/c++/4.6/bits/stl_map.h \
+ /usr/include/c++/4.6/bits/stl_multimap.h ../include/mnslp_ipfix_field.h \
+ /usr/include/stdlib.h /usr/lib/gcc/i686-linux-gnu/4.6/include/stddef.h \
  /usr/include/i386-linux-gnu/bits/waitflags.h \
  /usr/include/i386-linux-gnu/bits/waitstatus.h /usr/include/endian.h \
  /usr/include/i386-linux-gnu/bits/endian.h \
@@ -58,8 +64,6 @@ mnslp_ipfix_field.o: mnslp_ipfix_field.cpp ../include/mnslp_ipfix_field.h \
  /usr/include/c++/4.6/cctype /usr/include/ctype.h \
  /usr/include/c++/4.6/bits/ostream_insert.h \
  /usr/include/c++/4.6/bits/cxxabi_forced.h \
- /usr/include/c++/4.6/bits/stl_function.h \
- /usr/include/c++/4.6/backward/binders.h \
  /usr/include/c++/4.6/bits/basic_string.h \
  /usr/include/c++/4.6/ext/atomicity.h \
  /usr/include/c++/4.6/i686-linux-gnu/./bits/gthr.h \
@@ -107,10 +111,11 @@ mnslp_ipfix_field.o: mnslp_ipfix_field.cpp ../include/mnslp_ipfix_field.h \
  /usr/include/c++/4.6/bits/locale_facets.tcc \
  /usr/include/c++/4.6/bits/basic_ios.tcc \
  /usr/include/c++/4.6/bits/ostream.tcc /usr/include/c++/4.6/istream \
- /usr/include/c++/4.6/bits/istream.tcc /usr/include/c++/4.6/sstream \
- /usr/include/c++/4.6/bits/sstream.tcc
+ /usr/include/c++/4.6/bits/istream.tcc
 
-../include/mnslp_ipfix_field.h:
+../include/ipfix_t.h:
+
+../include/mnslp_ipfix_template.h:
 
 /usr/include/c++/4.6/vector:
 
@@ -181,6 +186,20 @@ mnslp_ipfix_field.o: mnslp_ipfix_field.cpp ../include/mnslp_ipfix_field.h \
 /usr/include/c++/4.6/bits/range_access.h:
 
 /usr/include/c++/4.6/bits/vector.tcc:
+
+/usr/include/c++/4.6/map:
+
+/usr/include/c++/4.6/bits/stl_tree.h:
+
+/usr/include/c++/4.6/bits/stl_function.h:
+
+/usr/include/c++/4.6/backward/binders.h:
+
+/usr/include/c++/4.6/bits/stl_map.h:
+
+/usr/include/c++/4.6/bits/stl_multimap.h:
+
+../include/mnslp_ipfix_field.h:
 
 /usr/include/stdlib.h:
 
@@ -263,10 +282,6 @@ mnslp_ipfix_field.o: mnslp_ipfix_field.cpp ../include/mnslp_ipfix_field.h \
 /usr/include/c++/4.6/bits/ostream_insert.h:
 
 /usr/include/c++/4.6/bits/cxxabi_forced.h:
-
-/usr/include/c++/4.6/bits/stl_function.h:
-
-/usr/include/c++/4.6/backward/binders.h:
 
 /usr/include/c++/4.6/bits/basic_string.h:
 
@@ -395,7 +410,3 @@ mnslp_ipfix_field.o: mnslp_ipfix_field.cpp ../include/mnslp_ipfix_field.h \
 /usr/include/c++/4.6/istream:
 
 /usr/include/c++/4.6/bits/istream.tcc:
-
-/usr/include/c++/4.6/sstream:
-
-/usr/include/c++/4.6/bits/sstream.tcc:

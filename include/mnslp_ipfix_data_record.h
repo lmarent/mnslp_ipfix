@@ -32,7 +32,7 @@
 #define MNSLP_IPFIX_DATA_RECORD_H
 
 #include <map>
-#include "mnslp_ipfix_fields.h"
+#include "mnslp_ipfix_field.h"
 
 namespace mnslp_ipfix
 {
@@ -97,10 +97,22 @@ public:
      */
     mnslp_ipfix_value_field get_field(int eno, int ftype);
 
+
+    /** 
+     * Return the field value based on components of the field key
+     */
+    mnslp_ipfix_value_field get_field(int eno, int ftype) const;
+
+
     /** 
      * Return the field value based on the field key
      */
     mnslp_ipfix_value_field get_field(mnslp_ipfix_field_key &param);
+
+    /** 
+     * Return the field value based on the field key
+     */
+    mnslp_ipfix_value_field get_field(const mnslp_ipfix_field_key &param) const;
     
     /** 
      * Return the length on bytes of the value based on components of the field key
@@ -126,17 +138,17 @@ public:
 	 *  Equals to operator. 
 	 *  It is equal when it has the same amount of field values and every value is equal.
 	 */
-	bool operator== (mnslp_ipfix_data_record& rhs);
+	bool operator== (const mnslp_ipfix_data_record& rhs) const;
 	
 	/** 
 	 * Assignment operator. 
 	*/ 
-	mnslp_ipfix_data_record& operator= (mnslp_ipfix_data_record&);
+	mnslp_ipfix_data_record& operator= (const mnslp_ipfix_data_record&);
 	
 	/** 
 	* Not equal to operator. 
 	*/ 
-	bool operator != (mnslp_ipfix_data_record &rhs);
+	bool operator != (const mnslp_ipfix_data_record &rhs) const;
     
 };
 

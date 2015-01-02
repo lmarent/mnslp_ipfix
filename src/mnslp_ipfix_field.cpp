@@ -27,7 +27,7 @@
 //
 // ===========================================================
 
-#include "mnslp_ipfix_fields.h"
+#include "mnslp_ipfix_field.h"
 #include <iostream>
 #include <sstream>
 
@@ -35,9 +35,19 @@
 namespace mnslp_ipfix
 {
 
-mnslp_ipfix_field::mnslp_ipfix_field(ipfix_field_type_t param): field_type(param)
+mnslp_ipfix_field::mnslp_ipfix_field()
 {
 
+}
+
+mnslp_ipfix_field::mnslp_ipfix_field(ipfix_field_type_t &param): field_type(param)
+{
+
+}
+
+mnslp_ipfix_field::mnslp_ipfix_field(const mnslp_ipfix_field &rhs)
+{
+	field_type = rhs.field_type;
 }
 
 mnslp_ipfix_field::~mnslp_ipfix_field()
@@ -458,34 +468,25 @@ mnslp_ipfix_value_field
 mnslp_ipfix_field::decode( uint8_t *in, 
 						   size_t len, int relay_f)
 {
-	    std::cout << "field name:" << field_type.name << std::endl;
-	    
 	    if ( field_type.coding == IPFIX_CODING_INT ) {
-			std::cout << "decode int" << std::endl;
             return ipfix_decode_int(in, len, relay_f);
         }
         else if ( field_type.coding == IPFIX_CODING_UINT ) {
-            std::cout << "decode uint" << std::endl;
             return ipfix_decode_int(in, len, relay_f);
         }
         else if ( field_type.coding == IPFIX_CODING_NTP ) {
-            std::cout << "decode ntp" << std::endl;
             return ipfix_decode_int(in, len, relay_f);
         }
         else if ( field_type.coding == IPFIX_CODING_FLOAT ) {
-            std::cout << "decode float" << std::endl;
             return ipfix_decode_float(in, len, relay_f);
         }
         else if ( field_type.coding == IPFIX_CODING_IPADDR ) {
-            std::cout << "decode ipaddr" << std::endl;
             return ipfix_decode_bytes(in, len, relay_f);
         }
         else if ( field_type.coding == IPFIX_CODING_STRING ) {
-            std::cout << "decode string" << std::endl;
             return ipfix_decode_bytes(in, len, relay_f);
         }
         else {
-            std::cout << "decode bytes" << std::endl;
             return ipfix_decode_bytes(in, len, relay_f);
         }
 
@@ -726,7 +727,7 @@ mnslp_ipfix_value_field::operator= (const mnslp_ipfix_value_field &param)
 
 
 bool
-mnslp_ipfix_value_field::operator==( mnslp_ipfix_value_field &param)
+mnslp_ipfix_value_field::operator==(const mnslp_ipfix_value_field &param) const
 {
 
 	if ( ((param.valuechar == NULL ) and (valuechar == NULL)) 
@@ -792,7 +793,7 @@ mnslp_ipfix_value_field::operator==( mnslp_ipfix_value_field &param)
 }
 
 bool
-mnslp_ipfix_value_field::operator!=( mnslp_ipfix_value_field &param)
+mnslp_ipfix_value_field::operator!=( const mnslp_ipfix_value_field &param) const
 {
 	return !(operator==(param));
 }
@@ -1771,14 +1772,14 @@ void msnlp_ipfix_field_container::initialize_reverse(void)
  * parameters: eno, ftype
  * return:     field from the container list or NULL
  */
-mnslp_ipfix_field * msnlp_ipfix_field_container::get_field( int eno, int type )
+mnslp_ipfix_field msnlp_ipfix_field_container::get_field( int eno, int type )
 {
  
 	for (std::vector<mnslp_ipfix_field>::iterator it = fieldTypeList.begin() ; 
 			it != fieldTypeList.end(); ++it)
 	{
         if( ((it->get_field_type()).ftype == type) && ((it->get_field_type()).eno==eno) )
-			return &(*it);
+			return *it;
 	}
     throw mnslp_ipfix_bad_argument("Field not found in the container");
 }

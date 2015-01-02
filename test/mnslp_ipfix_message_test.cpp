@@ -316,11 +316,10 @@ void Mnslp_Ipfix_Message_Test::testExportImport()
 	num_templates = msgb.get_num_templates();
 	CPPUNIT_ASSERT( num_templates == 1 );
 	
-	if (msgb.operator==( *mes))
-		std::cout << "equal messages" << std::endl;
-	else
-	    std::cout << "not equal messages" << std::endl;
-
+	std::cout << "import offset:" << msgb.get_offset() << std::endl;
+	
+	CPPUNIT_ASSERT( msgb.operator==( *mes) );
+	
 	
 }
 

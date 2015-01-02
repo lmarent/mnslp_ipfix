@@ -1,5 +1,5 @@
 mnslp_ipfix_field.o: ../src/mnslp_ipfix_field.cpp \
- ../include/mnslp_ipfix_fields.h /usr/include/c++/4.6/vector \
+ ../include/mnslp_ipfix_field.h /usr/include/c++/4.6/vector \
  /usr/include/c++/4.6/bits/stl_algobase.h \
  /usr/include/c++/4.6/i686-linux-gnu/./bits/c++config.h \
  /usr/include/c++/4.6/i686-linux-gnu/./bits/os_defines.h \
@@ -111,7 +111,7 @@ mnslp_ipfix_field.o: ../src/mnslp_ipfix_field.cpp \
  /usr/include/c++/4.6/bits/istream.tcc /usr/include/c++/4.6/sstream \
  /usr/include/c++/4.6/bits/sstream.tcc
 
-../include/mnslp_ipfix_fields.h:
+../include/mnslp_ipfix_field.h:
 
 /usr/include/c++/4.6/vector:
 

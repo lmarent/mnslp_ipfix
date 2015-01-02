@@ -93,7 +93,7 @@ main.o: main.cpp /usr/include/stdio.h /usr/include/features.h \
  /usr/include/c++/4.6/bits/istream.tcc \
  ../include/mnslp_ipfix_data_record.h /usr/include/c++/4.6/map \
  /usr/include/c++/4.6/bits/stl_tree.h /usr/include/c++/4.6/bits/stl_map.h \
- /usr/include/c++/4.6/bits/stl_multimap.h ../include/mnslp_ipfix_fields.h \
+ /usr/include/c++/4.6/bits/stl_multimap.h ../include/mnslp_ipfix_field.h \
  /usr/include/c++/4.6/vector /usr/include/c++/4.6/bits/stl_construct.h \
  /usr/include/c++/4.6/bits/stl_uninitialized.h \
  /usr/include/c++/4.6/bits/stl_vector.h \
@@ -114,7 +114,8 @@ main.o: main.cpp /usr/include/stdio.h /usr/include/features.h \
  /usr/include/i386-linux-gnu/bits/in.h ../include/ipfix_def.h \
  /usr/include/c++/4.6/cstddef ../include/mnslp_ipfix_exception.h \
  ../include/mnslp_ipfix_message.h ../include/mnslp_ipfix_data_record.h \
- ../include/mnslp_ipfix_templates.h /usr/include/c++/4.6/bitset
+ ../include/mnslp_ipfix_template.h ../include/ipfix_t.h \
+ /usr/include/c++/4.6/bitset
 
 /usr/include/stdio.h:
 
@@ -372,7 +373,7 @@ main.o: main.cpp /usr/include/stdio.h /usr/include/features.h \
 
 /usr/include/c++/4.6/bits/stl_multimap.h:
 
-../include/mnslp_ipfix_fields.h:
+../include/mnslp_ipfix_field.h:
 
 /usr/include/c++/4.6/vector:
 
@@ -428,6 +429,8 @@ main.o: main.cpp /usr/include/stdio.h /usr/include/features.h \
 
 ../include/mnslp_ipfix_data_record.h:
 
-../include/mnslp_ipfix_templates.h:
+../include/mnslp_ipfix_template.h:
+
+../include/ipfix_t.h:
 
 /usr/include/c++/4.6/bitset:
